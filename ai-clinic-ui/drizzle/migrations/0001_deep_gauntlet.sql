@@ -1,0 +1,20 @@
+-- -- ALTER TABLE "operative_reports" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+-- -- DROP TABLE "operative_reports" CASCADE;--> statement-breakpoint
+-- -- ALTER TABLE "patient_surgeries" DROP CONSTRAINT "patient_surgeries_operation_id_operative_reports_id_fk";
+-- --> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" DROP CONSTRAINT "patient_surgeries_patient_id_patients_id_fk";
+-- --> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ALTER COLUMN "surgery_date" SET NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "procedure_type" "procedure_type" NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "hospital_name" varchar(255);--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "surgeon_name" varchar(255) NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "first_assistant" varchar(255);--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "second_assistant" varchar(255);--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "dissection_by" varchar(255);--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "camera_man" varchar(255);--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "operative_notes" text;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD COLUMN "summary_notes" text;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD CONSTRAINT "patient_surgeries_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" DROP COLUMN "operation_id";--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" DROP COLUMN "notes";

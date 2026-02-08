@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Next.js build output
+.next
+out
+build
+dist
+
+# Environment variables
+.env
+.env.local
+
+# Public assets (optional, if you have large svgs/images)
+public

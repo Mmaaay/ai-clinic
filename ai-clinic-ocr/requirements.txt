@@ -1,0 +1,26 @@
+# Medical OCR - Gemini-based pipeline
+google-genai
+python-dotenv
+pymupdf
+Pillow
+pydantic
+paddleocr[all]
+# FastAPI server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Legacy OCR tools (optional)
+# paddlepaddle
+# paddleocr>=2.0.1
+opencv-python-headless
+numpy
+# easyocr
+# transformers
+# sentencepiece
+# protobuf
+# layoutparser
+
+# Google Cloud Document AI
+google-cloud-documentai
+

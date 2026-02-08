@@ -1,0 +1,183 @@
+-- -- CREATE TYPE "public"."allergy_severity" AS ENUM('Mild', 'Moderate', 'Severe', 'Life Threatening');--> statement-breakpoint
+-- -- CREATE TYPE "public"."complaint_type" AS ENUM('Chief Complaint', 'Past History');--> statement-breakpoint
+-- -- CREATE TYPE "public"."condition_status" AS ENUM('Active', 'Resolved');--> statement-breakpoint
+-- -- CREATE TYPE "public"."medication_type" AS ENUM('Pre-op', 'Home', 'Inpatient');--> statement-breakpoint
+-- -- CREATE TYPE "public"."social_history_category" AS ENUM('Smoking', 'Alcohol', 'Diet', 'Exercise', 'Other');--> statement-breakpoint
+-- -- CREATE TYPE "public"."bowel_function" AS ENUM('Normal Stool', 'Flatus Only', 'Constipated', 'Diarrhea', 'No Movement');--> statement-breakpoint
+-- -- CREATE TYPE "public"."imaging_category" AS ENUM('Preoperative', 'Postoperative', 'Non-routine');--> statement-breakpoint
+-- -- CREATE TYPE "public"."imaging_modality" AS ENUM('Ultrasound', 'X-Ray', 'Echocardiogram', 'CT Scan', 'MRI', 'Endoscopy', 'Other');--> statement-breakpoint
+-- -- CREATE TYPE "public"."lab_category" AS ENUM('Preoperative', 'Postoperative', 'Non-routine');--> statement-breakpoint
+-- -- CREATE TYPE "public"."lab_status" AS ENUM('Pending', 'Final', 'Cancelled');--> statement-breakpoint
+-- -- CREATE TYPE "public"."note_category" AS ENUM('General', 'Administrative', 'Secondary Procedure', 'Communication', 'Other');--> statement-breakpoint
+-- -- CREATE TYPE "public"."status" AS ENUM('Complicated', 'Deceased');--> statement-breakpoint
+-- -- CREATE TYPE "public"."procedure_type" AS ENUM('Sleeve Gastrectomy', 'Gastric Bypass (RNY)', 'Mini Gastric Bypass (MGB)', 'SASI', 'Gastric Balloon', 'Revisional Surgery', 'Other');--> statement-breakpoint
+-- -- CREATE TYPE "public"."visit_type" AS ENUM('Routine', 'Urgent');--> statement-breakpoint
+-- -- CREATE TYPE "public"."wound_status" AS ENUM('Clean', 'Inflamed', 'Infected', 'Dehiscence', 'Healing', 'Healed');--> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_allergies" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"allergen" varchar(255) NOT NULL,
+-- 	"reaction" varchar(255),
+-- 	"severity" "allergy_severity" DEFAULT 'Mild',
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_conditions" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"condition_name" varchar(255),
+-- 	"conditionStatus" "condition_status",
+-- 	"onset_date" timestamp,
+-- 	"type" "complaint_type",
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_medications" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"drug_name" varchar(255) NOT NULL,
+-- 	"dosage" varchar(100),
+-- 	"frequency" varchar(100),
+-- 	"type" "medication_type" DEFAULT 'Home' NOT NULL,
+-- 	"start_date" timestamp,
+-- 	"end_date" timestamp,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_social_history" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"category" "social_history_category" NOT NULL,
+-- 	"value" varchar(255) NOT NULL,
+-- 	"notes" text,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_surgeries" (
+-- 	"operation_id" uuid NOT NULL,
+-- 	"patient_id" uuid NOT NULL,
+-- 	"procedure_name" varchar(255) NOT NULL,
+-- 	"surgery_date" timestamp,
+-- 	"notes" text,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_followups" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"patient_id" uuid NOT NULL,
+-- 	"call_date" timestamp,
+-- 	"scheduled_visit_date" timestamp,
+-- 	"medication_adherence" jsonb,
+-- 	"diet_notes" varchar(255),
+-- 	"activity_level" varchar(255),
+-- 	"bowel_movement" "bowel_function",
+-- 	"urine_frequency" varchar(100),
+-- 	"symptoms" jsonb,
+-- 	"spirometer" varchar(255)
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_imaging" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"study_name" varchar(255),
+-- 	"modality" "imaging_modality",
+-- 	"category" "imaging_category",
+-- 	"report" jsonb,
+-- 	"impression" text,
+-- 	"image_url" varchar(500),
+-- 	"study_date" timestamp DEFAULT now(),
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_labs" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"test_name" varchar(255),
+-- 	"results" jsonb,
+-- 	"category" "lab_category",
+-- 	"status" "lab_status",
+-- 	"lab_date" timestamp DEFAULT now(),
+-- 	"notes" text,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_notes" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"patient_id" uuid NOT NULL,
+-- 	"title" varchar(255),
+-- 	"category" "note_category",
+-- 	"content" text,
+-- 	"is_pinned" boolean DEFAULT false,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patients" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"name" varchar(255),
+-- 	"name_ar" varchar(255),
+-- 	"national_id" varchar(100),
+-- 	"age" integer,
+-- 	"gender" varchar(50),
+-- 	"dob" varchar(50),
+-- 	"phone" varchar(50),
+-- 	"opt_phone" varchar(50),
+-- 	"height" integer,
+-- 	"int_weight" integer,
+-- 	"int_bmi" integer,
+-- 	"clinic_address" varchar,
+-- 	"residency" varchar,
+-- 	"referral" varchar,
+-- 	"agent" varchar,
+-- 	"status" "status",
+-- 	"first_visit" timestamp,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "operative_reports" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"patient_id" uuid NOT NULL,
+-- 	"operation_date" timestamp NOT NULL,
+-- 	"procedure_type" "procedure_type" NOT NULL,
+-- 	"hospital_name" varchar(255),
+-- 	"surgeon_name" varchar(255) NOT NULL,
+-- 	"first_assistant" varchar(255),
+-- 	"second_assistant" varchar(255),
+-- 	"dissection_by" varchar(255),
+-- 	"camera_man" varchar(255),
+-- 	"operative_notes" text,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "patient_visits" (
+-- 	"patient_id" uuid NOT NULL,
+-- 	"urgent_purpose" text,
+-- 	"weight" numeric(5, 2),
+-- 	"bmi" numeric(4, 1),
+-- 	"visit_date" timestamp,
+-- 	"visit_type" "visit_type",
+-- 	"wound_status" "wound_status",
+-- 	"clinical_findings" text,
+-- 	"new_prescriptions" jsonb,
+-- 	"investigations_ordered" jsonb,
+-- 	"recommendations" text,
+-- 	"next_appointment_date" timestamp,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now()
+-- );
+-- --> statement-breakpoint
+-- ALTER TABLE "patient_allergies" ADD CONSTRAINT "patient_allergies_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_conditions" ADD CONSTRAINT "patient_conditions_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_medications" ADD CONSTRAINT "patient_medications_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_social_history" ADD CONSTRAINT "patient_social_history_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD CONSTRAINT "patient_surgeries_operation_id_operative_reports_id_fk" FOREIGN KEY ("operation_id") REFERENCES "public"."operative_reports"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ADD CONSTRAINT "patient_surgeries_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_followups" ADD CONSTRAINT "patient_followups_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_imaging" ADD CONSTRAINT "patient_imaging_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_labs" ADD CONSTRAINT "patient_labs_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_notes" ADD CONSTRAINT "patient_notes_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "operative_reports" ADD CONSTRAINT "operative_reports_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "patient_visits" ADD CONSTRAINT "patient_visits_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE no action ON UPDATE no action;

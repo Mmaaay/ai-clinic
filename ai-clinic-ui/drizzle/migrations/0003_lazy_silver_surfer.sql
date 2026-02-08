@@ -1,0 +1,9 @@
+-- ALTER TABLE "patient_allergies" ALTER COLUMN "allergen" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_medications" ALTER COLUMN "drug_name" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_medications" ALTER COLUMN "type" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_social_history" ALTER COLUMN "category" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_social_history" ALTER COLUMN "value" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ALTER COLUMN "procedure_name" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ALTER COLUMN "procedure_type" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ALTER COLUMN "surgery_date" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "patient_surgeries" ALTER COLUMN "surgeon_name" DROP NOT NULL;

@@ -13,4 +13,6 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
+  // Skip validation during Docker build
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

@@ -9,8 +9,13 @@ RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm instal
 # Copy source
 COPY . .
 
+# Build args for client-side env vars (inlined at build time)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build Next.js app (standalone output for smaller image)
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
 RUN npm run build
 
 # Production runtime

@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from config import settings
 from medical_ocr_fast import analyze_document_streaming
 
 # =============================================================================
@@ -35,15 +36,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS configuration for Next.js frontend
+# CORS configuration from environment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        # Add production URLs here
-    ],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

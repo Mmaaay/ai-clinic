@@ -1,0 +1,15 @@
+{
+  "name": "ai-clinic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Clinic monorepo - OCR and UI services",
+  "scripts": {
+    "prepare": "husky",
+    "validate:ocr": "cd ai-clinic-ocr && python scripts/validate_env.py",
+    "validate:ui": "cd ai-clinic-ui && npx tsx scripts/validate-env.ts",
+    "validate:all": "npm run validate:ocr && npm run validate:ui"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

@@ -13,13 +13,11 @@ Usage:
 
 import argparse
 import json
-import os
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from dotenv import load_dotenv
 from ocr_types.medical_types import (
     MedicalOCR,
 )  # Ensure this matches your local file structure
@@ -33,11 +31,12 @@ try:
 except ImportError:
     fitz = None
 
+from config import settings
+
 # =============================================================================
 # Configuration
 # =============================================================================
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY = settings.GEMINI_API_KEY.get_secret_value()
 
 # =============================================================================
 # Compact Prompt

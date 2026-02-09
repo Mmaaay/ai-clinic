@@ -19,7 +19,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
+      "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
       "npx prettier --write ."
     ],
     "*.{css,json,md,html}": [

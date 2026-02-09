@@ -1,4 +1,3 @@
-import type { NextConfig } from "next";
 import "./src/env.mjs"; // Validation happens here!
 
 /** @type {import('next').NextConfig} */

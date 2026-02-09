@@ -23,7 +23,7 @@
       "npx prettier --write ."
     ],
     "*.{css,json,md,html}": [
-      "npx prettier --write"
+      "npx prettier --write ."
     ]
   },
   "dependencies": {

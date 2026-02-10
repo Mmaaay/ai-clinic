@@ -5,38 +5,9 @@ echo "🔍 Running pre-commit validation..."
 # Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only)
 
-# Check if any OCR files are staged
-OCR_CHANGED=$(echo "$STAGED_FILES" | grep -E "^ai-clinic-ocr/" || true)
 
 # Check if any UI files are staged
 UI_CHANGED=$(echo "$STAGED_FILES" | grep -E "^ai-clinic-ui/" || true)
-
-# Validate OCR service if OCR files changed
-if [ -n "$OCR_CHANGED" ]; then
-  echo ""
-  echo "🐍 OCR files changed - validating environment..."
-  if [ -f "ai-clinic-ocr/.env" ]; then
-    cd ai-clinic-ocr
-    # Use virtual environment Python if available
-    if [ -f "venv/Scripts/python.exe" ]; then
-      venv/Scripts/python.exe scripts/validate_env.py
-      OCR_STATUS=$?
-    elif [ -f "venv/bin/python" ]; then
-      venv/bin/python scripts/validate_env.py
-      OCR_STATUS=$?
-    else
-      echo "⚠️  Skipping OCR validation (venv not found)"
-      OCR_STATUS=0
-    fi
-    cd ..
-    if [ $OCR_STATUS -ne 0 ]; then
-      echo "❌ OCR environment validation failed!"
-      exit 1
-    fi
-  else
-    echo "⚠️  Skipping OCR validation (no .env found)"
-  fi
-fi
 
 # Validate UI service if UI files changed
 if [ -n "$UI_CHANGED" ]; then

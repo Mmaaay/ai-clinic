@@ -43,6 +43,7 @@ import { PatientFollowup } from "@/drizzle/schemas/patient_follow-up";
 import { PatientImagingRecord } from "@/drizzle/schemas/patient_images";
 import { PatientVisitsRecord } from "@/drizzle/schemas/patient_visits";
 import { PatientNotesRecord } from "@/drizzle/schemas/patient_notes";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // --- Helpers ---
 function sanitizePhone(phone: string | null | undefined): string {
@@ -97,6 +98,19 @@ function AddPatientForm() {
   const [scanStatus, setScanStatus] = useState("");
   const [activeTab, setActiveTab] = useState("details");
 
+  const queryClient = useQueryClient();
+
+  const createRecordMutation = useMutation({
+    mutationFn: (data: medicalRecordForm) => createPatientRecord(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+    onError: (error) => {
+      console.error("Error creating patient record:", error);
+      setServerError("Failed to create patient record.");
+    },
+  });
+
   const form = useAppForm({
     ...medicalRecordFormOpts,
     onSubmit: async ({ value }) => {
@@ -108,11 +122,7 @@ function AddPatientForm() {
             setServerError("Please check required fields.");
             return;
           }
-          const result = await createPatientRecord(parsed.data);
-          if (!result.success) {
-            setServerError("Failed to create patient record.");
-            return;
-          }
+          await createRecordMutation.mutateAsync(parsed.data);
           router.push("/");
         } catch (error) {
           console.error("Error:", error);

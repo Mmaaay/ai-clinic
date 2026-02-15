@@ -12,6 +12,8 @@ COPY . .
 # Build args for client-side env vars (inlined at build time)
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG DATABASE_URL
+ENV DATABASE_URL="postgres://dummy:dummy@db:5432/ai_clinic"
 
 # Build Next.js app (standalone output for smaller image)
 ENV NEXT_TELEMETRY_DISABLED=1

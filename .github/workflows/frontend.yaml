@@ -5,12 +5,14 @@ on:
   push:
     branches:
       - main
+      - frontend-main
     paths:
       - 'ai-clinic-ui/**'
       - '.github/workflows/frontend.yaml'
   pull_request:
     branches:
       - main
+      - frontend-main
     paths:
       - 'ai-clinic-ui/**'
       - '.github/workflows/frontend.yaml'
@@ -87,49 +89,50 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
-    name: Deploy to Oracle Cloud
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # deploy:
+    # name: Deploy to Oracle Cloud
+    # needs: build-and-push
+    # runs-on: ubuntu-latest
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # steps:
+    #   - name: Checkout code
+    #     uses: actions/checkout@v4
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.ORACLE_HOST }} >> ~/.ssh/known_hosts
+    #   - name: Setup SSH key
+    #     run: |
+    #       mkdir -p ~/.ssh
+    #       echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_rsa
+    #       chmod 600 ~/.ssh/id_rsa
+    #       ssh-keyscan -H ${{ secrets.ORACLE_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Oracle Server
-        env:
-          HOST: ${{ secrets.ORACLE_HOST }}
-          USER: ${{ secrets.ORACLE_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        run: |
-          ssh $USER@$HOST << 'ENDSSH'
-            cd ${{ secrets.DEPLOY_PATH }}
+    #   - name: Deploy to Oracle Server
+    #     env:
+    #       HOST: ${{ secrets.ORACLE_HOST }}
+    #       USER: ${{ secrets.ORACLE_USER }}
+    #       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+    #       IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+    #     run: |
+    #       ssh $USER@$HOST << 'ENDSSH'
+    #         cd ${{ secrets.DEPLOY_PATH }}
             
-            # Pull latest images
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+    #         # Pull latest images
+    #         docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
-            # Restart services with docker-compose
-            docker-compose pull ui
-            docker-compose up -d ui
+    #         # Restart services with docker-compose
+    #         docker-compose pull ui
+    #         docker-compose up -d ui
             
-            # Cleanup old images
-            docker image prune -f
-          ENDSSH
+    #         # Cleanup old images
+    #         docker image prune -f
+    #       ENDSSH
 
-      - name: Verify deployment
-        run: |
-          sleep 30
-          curl -f http://${{ secrets.ORACLE_HOST }}:3000 || exit 1
+    #   - name: Verify deployment
+    #     run: |
+    #       sleep 30
+    #       curl -f http://${{ secrets.ORACLE_HOST }}:3000 || exit 1
+
+    

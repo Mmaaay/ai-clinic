@@ -68,6 +68,7 @@ function AddPatientForm() {
   const [scanCompleted, setScanCompleted] = useState(false);
   const scanLock = useRef(false); // immutable flag — once true, no more scans this session
   const [activeTab, setActiveTab] = useState("details");
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -86,11 +87,26 @@ function AddPatientForm() {
     ...medicalRecordFormOpts,
     onSubmit: async ({ value }) => {
       setServerError(null);
+      setMissingFields([]);
+
+      // Validate required fields (only names are required)
+      const missing: string[] = [];
+      if (!value.patient?.name?.trim()) missing.push("Full Name (English)");
+
+      if (missing.length > 0) {
+        setMissingFields(missing);
+        setServerError(
+          `Please fill in the required fields: ${missing.join(", ")}`,
+        );
+        setActiveTab("details");
+        return;
+      }
+
       startTransition(async () => {
         try {
           const parsed = medicalRecordFormSchema.partial().safeParse(value);
           if (!parsed.success) {
-            setServerError("Please check required fields.");
+            setServerError("Validation error. Please review your entries.");
             return;
           }
           if (!parsed.data.patient) {
@@ -367,13 +383,40 @@ function AddPatientForm() {
                     <div className="space-y-2 w-full md:w-1/2">
                       <form.Field name="patient.name">
                         {(field) => (
-                          <Input
-                            placeholder="Full Name (English) *"
-                            className={`text-lg font-bold h-10 ${field.state.meta!.errors.length ? "border-red-500" : ""}`}
-                            value={field.state.value || ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            required
-                          />
+                          <div>
+                            <Label
+                              className={`text-xs font-semibold ${
+                                missingFields.includes("Full Name (English)")
+                                  ? "text-red-600"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              Full Name (English){" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              placeholder="Full Name (English)"
+                              className={`text-lg font-bold h-10 ${
+                                missingFields.includes("Full Name (English)")
+                                  ? "border-red-500 ring-1 ring-red-500 focus-visible:ring-red-500"
+                                  : ""
+                              }`}
+                              value={field.state.value || ""}
+                              onChange={(e) => {
+                                field.handleChange(e.target.value);
+                                if (e.target.value.trim()) {
+                                  setMissingFields((prev) =>
+                                    prev.filter(
+                                      (f) => f !== "Full Name (English)",
+                                    ),
+                                  );
+                                  if (missingFields.length <= 1)
+                                    setServerError(null);
+                                }
+                              }}
+                              required
+                            />
+                          </div>
                         )}
                       </form.Field>
                       <form.Field name="patient.nameAr">

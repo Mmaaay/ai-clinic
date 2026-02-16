@@ -113,6 +113,7 @@ function AddPatientForm() {
             setServerError(`Validation error: ${issueList.join(" | ")}`);
             return;
           }
+          console.log("Validated form data:", parsed.data);
           const result = await createRecordMutation.mutateAsync(
             parsed.data as medicalRecordForm,
           );

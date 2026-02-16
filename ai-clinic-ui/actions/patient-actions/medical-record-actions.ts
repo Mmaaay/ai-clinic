@@ -309,6 +309,7 @@ export async function createPatientRecord(rawInput: medicalRecordForm) {
       return { patientId: pId };
     });
 
+    revalidatePath("/");
     revalidatePath("/patients");
     return { success: true, data: result };
   } catch {

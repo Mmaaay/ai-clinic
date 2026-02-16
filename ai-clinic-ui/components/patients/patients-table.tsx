@@ -48,20 +48,21 @@ export function PatientsTable({ patients }: PatientsTableProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
 
-  const { isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<Patients[]>({
     queryKey: ["patients"],
-    queryFn: () => {
-      throw new Error("Patients should be prefetched on server");
+    queryFn: async () => {
+      const res = await fetch("/api/patients");
+      if (!res.ok) throw new Error("Failed to fetch patients");
+      return res.json();
     },
+    initialData: patients,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: patients,
+    data: data ?? patients,
     columns,
     state: {
       sorting,

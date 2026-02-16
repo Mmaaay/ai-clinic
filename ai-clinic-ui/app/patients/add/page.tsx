@@ -106,16 +106,30 @@ function AddPatientForm() {
         try {
           const parsed = medicalRecordFormSchema.partial().safeParse(value);
           if (!parsed.success) {
-            setServerError("Validation error. Please review your entries.");
+            const issueList = parsed.error.issues.map((issue) => {
+              const path = issue.path.length ? issue.path.join(".") : "root";
+              return `${path}: ${issue.message}`;
+            });
+            setServerError(`Validation error: ${issueList.join(" | ")}`);
             return;
           }
-          if (!parsed.data.patient) {
-            setServerError("Patient information is required.");
-            return;
-          }
-          await createRecordMutation.mutateAsync(
+          const result = await createRecordMutation.mutateAsync(
             parsed.data as medicalRecordForm,
           );
+          if (!result?.success) {
+            const fieldErrors = result?.fieldErrors ?? {};
+            const issueList = Object.entries(fieldErrors).flatMap(
+              ([path, messages]) =>
+                (messages ?? []).map((msg) => `${path}: ${msg}`),
+            );
+            setServerError(
+              issueList.length
+                ? `Validation error: ${issueList.join(" | ")}`
+                : result?.error || "Failed to create patient record.",
+            );
+            return;
+          }
+
           router.push("/");
         } catch (error) {
           console.error("Error:", error);

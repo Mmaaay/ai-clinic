@@ -58,5 +58,12 @@ export const insertPatientNotesSchema = createInsertSchema(patientNotes).omit({
   updatedAt: true,
 });
 
+export const aiPatientNotesSchema = createInsertSchema(patientNotes).omit({
+  id: true,
+  patientId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type PatientNotesRecord = z.infer<typeof selectPatientNotesSchema>;
 export type NewPatientNotesRecord = z.infer<typeof insertPatientNotesSchema>;

@@ -43,6 +43,13 @@
       "when": 1770294241479,
       "tag": "0005_late_charles_xavier",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771187072580,
+      "tag": "0006_right_bucky",
+      "breakpoints": true
     }
   ]
 }

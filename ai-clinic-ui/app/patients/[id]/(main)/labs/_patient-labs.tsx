@@ -1,19 +1,22 @@
 "use client";
 
+import { updatePatientRecord } from "@/actions/patient-actions/medical-record-actions";
+import LabsForm from "@/components/patient-form/patient-labs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { medicalRecordFormSchema } from "@/drizzle/general-medical-history";
+import { PatientLabsRecord } from "@/drizzle/schemas/patient_labs";
 import { formatDateLocal } from "@/lib/helpers/format-date-local";
 import { getPatientLabsById } from "@/lib/server/patient-labs-by-id";
+import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
 import { useQuery } from "@tanstack/react-query";
-import { updatePatientRecord } from "@/actions/patient-actions/medical-record-actions";
-import LabsForm from "@/components/patient-form/patient-labs";
 import {
   AlertCircle,
   Beaker,
@@ -26,11 +29,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useState, useMemo, useEffect, startTransition } from "react";
-import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
-import { useRouter } from "next/navigation";
-import { medicalRecordFormSchema } from "@/drizzle/general-medical-history";
-import { PatientLabsRecord } from "@/drizzle/schemas/patient_labs";
+import { startTransition, useEffect, useMemo, useState } from "react";
 
 // Types from your schema
 type LabRecord = PatientLabsRecord;
@@ -113,8 +112,6 @@ export default function PatientLabsSection({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [, setServerError] = useState<string | null>(null);
 
-  const router = useRouter();
-
   const { data: labData, isLoading } = useQuery({
     queryKey: ["patient", "labs", id],
     queryFn: () => getPatientLabsById({ patientId: id }),
@@ -148,7 +145,7 @@ export default function PatientLabsSection({ id }: { id: string }) {
             setServerError("Failed to create patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

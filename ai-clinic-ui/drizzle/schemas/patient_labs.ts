@@ -67,5 +67,16 @@ export const insertPatientLabsSchema = createInsertSchema(patientLabs, {
   updatedAt: true,
 });
 
+export const aiPatientLabsSchema = createInsertSchema(patientLabs)
+  .omit({
+    id: true,
+    patientId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    labDate: z.string().nullable().optional(),
+  });
+
 export type PatientLabsRecord = z.infer<typeof selectPatientLabsSchema>;
 export type NewPatientLabsRecord = z.infer<typeof insertPatientLabsSchema>;

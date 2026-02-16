@@ -74,4 +74,15 @@ export const insertPatientSurgeriesSchema = createInsertSchema(
   patientId: true,
 });
 
+export const aiPatientSurgeriesSchema = createInsertSchema(patientSurgeries)
+  .omit({
+    id: true,
+    patientId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    surgeryDate: z.string().nullable().optional(),
+  });
+
 export type PatientSurgery = z.infer<typeof insertPatientSurgeriesSchema>;

@@ -47,6 +47,14 @@ export const patientSocialHistoryRelations = relations(
   }),
 );
 
+export const aiPatientSocialHistory = createInsertSchema(
+  patientSocialHistory,
+).omit({
+  id: true,
+  patientId: true,
+  createdAt: true,
+  updatedAt: true,
+});
 export const selectPatientSocialHistorySchema =
   createSelectSchema(patientSocialHistory);
 export const insertPatientSocialHistorySchema = createInsertSchema(

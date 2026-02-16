@@ -1,10 +1,10 @@
 "use client";
 
 import { createPatientRecord } from "@/actions/patient-actions/medical-record-actions";
+import { streamMedicalRecordFromPayload } from "@/actions/patient-actions/stream-medical-record";
 import PatientBackgroundForm from "@/components/patient-form/patient-background-form";
 import PatientFollowupForm from "@/components/patient-form/patient-followup-form";
 import ImagingForm from "@/components/patient-form/patient-imaging-form";
-import LabsForm from "../../../components/patient-form/patient-labs";
 import NotesForm from "@/components/patient-form/patient-notes-form";
 import VisitsForm from "@/components/patient-form/patient-visits-form";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   medicalRecordForm,
   medicalRecordFormSchema,
+  type PatientForm,
+  type PatientAllergyForm,
+  type PatientConditionForm,
+  type PatientMedicationForm,
+  type PatientSocialHistoryForm,
+  type PatientSurgeryForm,
+  type PatientFollowupForm as FollowupFormData,
+  type PatientLabForm,
+  type PatientImagingForm,
+  type PatientVisitForm,
+  type PatientNoteForm,
 } from "@/drizzle/general-medical-history";
-import { useAppForm, medicalRecordFormOpts } from "@/lib/tansack-form";
+import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   Building,
@@ -36,51 +48,10 @@ import {
   Weight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Suspense, useState, useTransition } from "react";
-import { PatientAllergy } from "@/drizzle/schemas/medical-background/patient_allergies";
-import { PatientSocialHistory } from "@/drizzle/schemas/medical-background/patient_social_history";
-import { PatientFollowup } from "@/drizzle/schemas/patient_follow-up";
-import { PatientImagingRecord } from "@/drizzle/schemas/patient_images";
-import { PatientVisitsRecord } from "@/drizzle/schemas/patient_visits";
-import { PatientNotesRecord } from "@/drizzle/schemas/patient_notes";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Suspense, useRef, useState, useTransition } from "react";
+import LabsForm from "../../../components/patient-form/patient-labs";
 
 // --- Helpers ---
-function sanitizePhone(phone: string | null | undefined): string {
-  if (!phone) return "";
-  const map: Record<string, string> = {
-    "٠": "0",
-    "١": "1",
-    "٢": "2",
-    "٣": "3",
-    "٤": "4",
-    "٥": "5",
-    "٦": "6",
-    "٧": "7",
-    "٨": "8",
-    "٩": "9",
-    "۰": "0",
-    "۱": "1",
-    "۲": "2",
-    "۳": "3",
-    "۴": "4",
-    "۵": "5",
-    "۶": "6",
-    "۷": "7",
-    "۸": "8",
-    "۹": "9",
-  };
-  return phone
-    .replace(/[٠-٩۰-۹]/g, (char) => map[char] || char)
-    .replace(/\D/g, "");
-}
-
-function safeDate(dateInput: string | null | undefined): Date | null {
-  if (!dateInput) return null;
-  const d = new Date(dateInput);
-  return isNaN(d.getTime()) ? null : d;
-}
-
 function formatDateForInput(date: Date | string | null | undefined): string {
   if (!date) return "";
   const d = new Date(date);
@@ -92,10 +63,10 @@ function AddPatientForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [scanStatus, setScanStatus] = useState("");
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanCompleted, setScanCompleted] = useState(false);
+  const scanLock = useRef(false); // immutable flag — once true, no more scans this session
   const [activeTab, setActiveTab] = useState("details");
 
   const queryClient = useQueryClient();
@@ -117,12 +88,18 @@ function AddPatientForm() {
       setServerError(null);
       startTransition(async () => {
         try {
-          const parsed = medicalRecordFormSchema.safeParse(value);
+          const parsed = medicalRecordFormSchema.partial().safeParse(value);
           if (!parsed.success) {
             setServerError("Please check required fields.");
             return;
           }
-          await createRecordMutation.mutateAsync(parsed.data);
+          if (!parsed.data.patient) {
+            setServerError("Patient information is required.");
+            return;
+          }
+          await createRecordMutation.mutateAsync(
+            parsed.data as medicalRecordForm,
+          );
           router.push("/");
         } catch (error) {
           console.error("Error:", error);
@@ -142,205 +119,125 @@ function AddPatientForm() {
 
   const onSubmit = () => form.handleSubmit();
 
+  const readFileAsBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
   const handleScan = async (file: File) => {
+    if (scanLock.current) {
+      setScanError(
+        "A scan has already been completed for this record. Save or discard to scan again.",
+      );
+      return;
+    }
     setScanError(null);
     setServerError(null);
     setIsScanning(true);
-    setScanProgress(0);
-    setScanStatus("starting");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/ocr/stream", {
-        method: "POST",
-        body: formData,
+      const fileData = await readFileAsBase64(file);
+      const result = await streamMedicalRecordFromPayload({
+        fileName: file.name,
+        fileType: file.type,
+        fileData,
       });
 
-      if (!response.ok || !response.body) {
-        const text = await response.text();
-        throw new Error(text || "Failed to scan document");
-      }
+      // Convert AI string dates → Date objects for the form
+      const toDate = (v: string | null | undefined): Date | null =>
+        v ? new Date(v) : null;
 
-      const decoder = new TextDecoder();
-      const reader = response.body.getReader();
-      let buffer = "";
-
-      const toArray = <T,>(value: T | T[] | null | undefined): T[] =>
-        Array.isArray(value) ? value : value ? [value] : [];
-      const currentValues = form.state.values as medicalRecordForm;
-
-      const handleResult = (result: unknown) => {
-        const extraction =
-          (result as { extraction?: Record<string, unknown> } | null)
-            ?.extraction || {};
-        const history =
-          (extraction as { history?: Record<string, unknown> }).history || {};
-        const extractionPatient =
-          (extraction as { patient?: Record<string, unknown> }).patient || {};
-        const extractionLabs =
-          (extraction as { labs?: Record<string, unknown> }).labs || {};
-        const mapOcrToForm: medicalRecordForm = {
-          ...currentValues,
-          patientAllergies: toArray(history.patientAllergies as PatientAllergy),
-          patientConditions: toArray(history.patientConditions as unknown).map(
-            (c) => {
-              const item = c as Record<string, unknown>;
-              return {
-                ...item,
-                onsetDate: safeDate(
-                  item.onsetDate as string | null | undefined,
-                ),
-              };
-            },
-          ),
-          patientMedications: toArray(
-            history.patientMedications as unknown,
-          ).map((m) => {
-            const item = m as Record<string, unknown>;
-            return {
-              ...item,
-              startDate: safeDate(item.startDate as string | null | undefined),
-            };
-          }),
-          patientSocialHistory: toArray(
-            history.patientSocialHistory as PatientSocialHistory,
-          ),
-          patientSurgeries: toArray(history.patientSurgeries as unknown).map(
-            (s) => {
-              const item = s as Record<string, unknown>;
-              return {
-                ...item,
-                surgeryDate: safeDate(
-                  item.surgeryDate as string | null | undefined,
-                ),
-              };
-            },
-          ),
-          patient: {
-            ...currentValues.patient,
-            name:
-              (extractionPatient.name as string | undefined) ||
-              currentValues.patient.name,
-            nameAr: (extractionPatient.name_ar as string | undefined) || "",
-            age:
-              (extractionPatient.age as number | null | undefined) ??
-              currentValues.patient.age,
-            gender:
-              (extractionPatient.gender as string | undefined) ||
-              currentValues.patient.gender,
-            phone:
-              sanitizePhone(
-                extractionPatient.phone as string | null | undefined,
-              ) || currentValues.patient.phone,
-            height:
-              (extractionPatient.height as number | null | undefined) || null,
-            initial_weight:
-              (extractionPatient.initial_weight as number | null | undefined) ||
-              null,
-            clinic_address:
-              (extractionPatient.clinic_address as string | undefined) || "",
-            residency:
-              (extractionPatient.residency as string | undefined) || "",
-            referral: (extractionPatient.referral as string | undefined) || "",
-            first_visit_date: safeDate(
-              extractionPatient.first_visit_date as string | null | undefined,
-            ),
-            dob: safeDate(extractionPatient.dob as string | null | undefined),
-          },
-          patientFollowups: toArray(
-            (extraction as { followups?: PatientFollowup }).followups,
-          ),
-          patientLabs: toArray(extractionLabs.labs as unknown).map((l) => {
-            const item = l as Record<string, unknown> & {
-              results?: Record<string, unknown>;
-            };
-            const results = item.results || {};
-            return {
-              ...item,
-              labDate: safeDate(
-                (item.labDate as string | null | undefined) ||
-                  (item.lab_date as string | null | undefined),
-              ),
-              results: {
-                value:
-                  (results.value as string | undefined) ||
-                  (item.value as string | undefined) ||
-                  "",
-                unit:
-                  (results.unit as string | undefined) ||
-                  (item.unit as string | undefined) ||
-                  "",
-              },
-            };
-          }),
-          patientImaging: toArray(
-            (extraction as { imaging?: PatientImagingRecord[] }).imaging,
-          ).map((i) => {
-            const item = i as Record<string, unknown>;
-            return {
-              ...item,
-              imageDate: safeDate(
-                (item.imageDate as string | null | undefined) ||
-                  (item.image_date as string | null | undefined),
-              ),
-            } as unknown as PatientImagingRecord;
-          }),
-          patientVisits: toArray(
-            (extraction as { visits?: PatientVisitsRecord }).visits,
-          ),
-          patientNotes: toArray(
-            (extraction as { notes?: PatientNotesRecord }).notes,
-          ).map((n) => {
-            const item = n as Record<string, unknown>;
-            return {
-              ...item,
-              noteDate: safeDate(item.noteDate as string | null | undefined),
-            } as unknown as PatientNotesRecord;
-          }),
-        };
-
-        const validated = medicalRecordFormSchema.safeParse(mapOcrToForm);
-        if (!validated.success) {
-          throw new Error("Validation failed for OCR data.");
-        }
-
-        form.reset(validated.data);
+      const patient = {
+        ...result.patient,
+        dob: toDate(result.patient.dob),
+        first_visit_date: toDate(result.patient.first_visit_date),
       };
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+      const visits = result.patientVisits?.map((v) => ({
+        ...v,
+        visitDate: toDate(v.visitDate),
+        nextAppointmentDate: toDate(v.nextAppointmentDate),
+      }));
 
-        const parts = buffer.split("\n\n");
-        buffer = parts.pop() || "";
+      const surgeries = result.patientSurgeries?.map((s) => ({
+        ...s,
+        surgeryDate: toDate(s.surgeryDate),
+      }));
 
-        for (const part of parts) {
-          const lines = part.split("\n");
-          const eventLine = lines.find((line) => line.startsWith("event:"));
-          const dataLine = lines.find((line) => line.startsWith("data:"));
-          if (!dataLine) continue;
+      const labs = result.patientLabs?.map((l) => ({
+        ...l,
+        labDate: toDate(l.labDate),
+      }));
 
-          const event = eventLine?.replace("event:", "").trim() || "message";
-          const data = JSON.parse(dataLine.replace("data:", "").trim());
+      const imaging = result.patientImaging?.map((i) => ({
+        ...i,
+        studyDate: toDate(i.studyDate),
+      }));
 
-          if (event === "progress") {
-            setScanProgress(Number(data.percent) || 0);
-            setScanStatus(data.message || "");
-          }
+      const followups = result.patientFollowups?.map((f) => ({
+        ...f,
+        callDate: toDate(f.callDate),
+        scheduledVisitDate: toDate(f.scheduledVisitDate),
+      }));
 
-          if (event === "error") {
-            throw new Error(data.error || "Failed to scan document");
-          }
+      const conditions = result.patientConditions?.map((c) => ({
+        ...c,
+        onsetDate: toDate(c.onsetDate),
+      }));
 
-          if (event === "result") {
-            setScanProgress(100);
-            setScanStatus("done");
-            handleResult(data);
-          }
-        }
-      }
+      const medications = result.patientMedications?.map((m) => ({
+        ...m,
+        startDate: toDate(m.startDate),
+        endDate: toDate(m.endDate),
+      }));
+
+      // Set each field individually so TanStack Form picks up changes
+      form.setFieldValue("patient", patient as PatientForm);
+      if (result.patientAllergies?.length)
+        form.setFieldValue(
+          "patientAllergies",
+          result.patientAllergies as PatientAllergyForm[],
+        );
+      if (conditions?.length)
+        form.setFieldValue(
+          "patientConditions",
+          conditions as PatientConditionForm[],
+        );
+      if (medications?.length)
+        form.setFieldValue(
+          "patientMedications",
+          medications as PatientMedicationForm[],
+        );
+      if (result.patientSocialHistory?.length)
+        form.setFieldValue(
+          "patientSocialHistory",
+          result.patientSocialHistory as PatientSocialHistoryForm[],
+        );
+      if (surgeries?.length)
+        form.setFieldValue(
+          "patientSurgeries",
+          surgeries as PatientSurgeryForm[],
+        );
+      if (followups?.length)
+        form.setFieldValue("patientFollowups", followups as FollowupFormData[]);
+      if (labs?.length)
+        form.setFieldValue("patientLabs", labs as PatientLabForm[]);
+      if (imaging?.length)
+        form.setFieldValue("patientImaging", imaging as PatientImagingForm[]);
+      if (visits?.length)
+        form.setFieldValue("patientVisits", visits as PatientVisitForm[]);
+      if (result.patientNotes?.length)
+        form.setFieldValue(
+          "patientNotes",
+          result.patientNotes as PatientNoteForm[],
+        );
+
+      // Lock scanning — only one successful scan per session
+      scanLock.current = true;
+      setScanCompleted(true);
     } catch (error) {
       setScanError(error instanceof Error ? error.message : "Scan failed");
     } finally {
@@ -354,7 +251,7 @@ function AddPatientForm() {
       <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b shadow-sm">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/")}>
               ← Back
             </Button>
             <div>
@@ -376,9 +273,13 @@ function AddPatientForm() {
                   if (e.target.files?.[0]) handleScan(e.target.files[0]);
                   e.target.value = "";
                 }}
-                disabled={isScanning}
+                disabled={isScanning || scanCompleted}
               />
-              {isScanning ? (
+              {scanCompleted ? (
+                <>
+                  <ScanLine className="mr-2 h-4 w-4 text-green-600" /> Scanned ✓
+                </>
+              ) : isScanning ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scanning
                 </>
@@ -410,20 +311,9 @@ function AddPatientForm() {
         )}
         {isScanning && (
           <div className="container mx-auto px-4 pb-2">
-            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-              <div className="flex items-center justify-between mb-2">
-                <span>Scanning document...</span>
-                <span>{scanProgress}%</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-blue-100">
-                <div
-                  className="h-2 rounded-full bg-blue-600 transition-all"
-                  style={{ width: `${scanProgress}%` }}
-                />
-              </div>
-              {scanStatus && (
-                <div className="mt-2 text-xs text-blue-600">{scanStatus}</div>
-              )}
+            <div className="flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Extracting structured data...</span>
             </div>
           </div>
         )}
@@ -478,10 +368,11 @@ function AddPatientForm() {
                       <form.Field name="patient.name">
                         {(field) => (
                           <Input
-                            placeholder="Full Name (English)"
+                            placeholder="Full Name (English) *"
                             className={`text-lg font-bold h-10 ${field.state.meta!.errors.length ? "border-red-500" : ""}`}
                             value={field.state.value || ""}
                             onChange={(e) => field.handleChange(e.target.value)}
+                            required
                           />
                         )}
                       </form.Field>

@@ -17,14 +17,13 @@ import { getPatientSurgeryById } from "@/lib/server/patient-surgery-by-id";
 import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, ChevronDown, Filter, Scale, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { startTransition, useEffect, useMemo, useState } from "react";
 
 export default function PatientSurgerySection({ id }: { id: string }) {
   const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD string
   const [isEditing, setIsEditing] = useState(false);
   const [, setServerError] = useState<string | null>(null);
-  const router = useRouter();
 
   const { data: surgeryDataFromQuery } = useQuery({
     queryKey: ["patient", "surgery", id],
@@ -45,20 +44,22 @@ export default function PatientSurgerySection({ id }: { id: string }) {
       setServerError(null);
       startTransition(async () => {
         try {
-          const parsed = medicalRecordFormSchema.safeParse(value);
+          const parsed = medicalRecordFormSchema.partial().safeParse(value);
           if (!parsed.success) {
             setServerError("Please check required fields.");
             return;
           }
           const result = await updatePatientRecord({
             patientId: id,
-            data: parsed.data,
+            data: {
+              patientSurgeries: parsed.data.patientSurgeries,
+            },
           });
           if (!result.success) {
-            setServerError("Failed to create patient record.");
+            setServerError("Failed to update patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

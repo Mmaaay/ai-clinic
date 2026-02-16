@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils"; // Assuming you have a cn utility, or use template literals
 import { ExportModal } from "./export-modal";
+import { Button } from "./ui/button";
 
 const tabs = [
   {
@@ -71,6 +72,11 @@ export function PatientTabNav({ patientId }: { patientId: string }) {
 
   return (
     <div className="flex flex-wrap gap-1 mb-6 bg-muted/50 p-2 rounded-xl">
+      <div className="mb-4">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/">← Back</Link>
+        </Button>
+      </div>
       {tabs.map((tab) => {
         // Construct full path
         const href =
@@ -89,6 +95,7 @@ export function PatientTabNav({ patientId }: { patientId: string }) {
             <Link
               key={tab.id}
               href={href}
+              prefetch={false}
               className={cn(
                 "relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
                 isActive

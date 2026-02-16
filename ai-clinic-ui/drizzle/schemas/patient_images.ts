@@ -77,6 +77,17 @@ export const insertPatientsImagingSchema = createInsertSchema(
   updatedAt: true,
 });
 
+export const aiPatientImagingSchema = createInsertSchema(patientImaging)
+  .omit({
+    id: true,
+    patientId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    studyDate: z.string().nullable().optional(),
+  });
+
 export type PatientImagingRecord = z.infer<typeof selectPatientsImagingSchema>;
 export type NewPatientImagingRecord = z.infer<
   typeof insertPatientsImagingSchema

@@ -9,7 +9,11 @@ import { zValidate } from "@/lib/validation/patient-data-validate";
 import type { PatientAllergy } from "@/drizzle/schemas/medical-background/patient_allergies";
 import z from "zod";
 
-const requiredString = z.string().min(1, "Required");
+const requiredString = z
+  .string()
+  .trim()
+  .min(1, "Enter at least 1 character")
+  .optional();
 const severitySchema = z.enum([
   "Mild",
   "Moderate",

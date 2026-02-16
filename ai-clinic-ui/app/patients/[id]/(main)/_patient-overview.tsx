@@ -27,7 +27,8 @@ export default function PatientOverview({ id }: { id: string }) {
     queryFn: () => getPatientById({ patientId: id }),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
-    refetchOnMount: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const form = useForm({
@@ -120,6 +121,7 @@ export default function PatientOverview({ id }: { id: string }) {
                   disabled={!isEditing}
                   value={field.state.value ?? ""}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  required
                 />
               </div>
             )}

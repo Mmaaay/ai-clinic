@@ -9,7 +9,11 @@ import { zValidate } from "@/lib/validation/patient-data-validate";
 import type { PatientCondition } from "@/drizzle/schemas/medical-background/patient_conditions";
 import z from "zod";
 
-const requiredString = z.string().min(1, "Required");
+const requiredString = z
+  .string()
+  .trim()
+  .min(1, "Enter at least 1 character")
+  .optional();
 const statusSchema = z.enum(["Active", "Remission", "Resolved"]);
 type ConditionStatus = z.infer<typeof statusSchema>;
 

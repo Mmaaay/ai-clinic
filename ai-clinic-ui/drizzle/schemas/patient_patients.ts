@@ -31,7 +31,7 @@ export type patientStatusEnumType = z.infer<typeof patientStatusEnum>;
 
 export const patients = pgTable("patients", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }),
+  name: varchar("name", { length: 255 }).notNull(),
   nameAr: varchar("name_ar", { length: 255 }),
   nationalId: varchar("national_id", { length: 100 }),
   age: integer("age"),
@@ -93,6 +93,18 @@ export const emptyPatientInsert = insertPatientsSchema.parse({
   status: "Complicated",
   first_visit_date: new Date(),
 });
+
+export const aiPatientsSchema = createInsertSchema(patients)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    nationalId: true,
+  })
+  .extend({
+    dob: z.string().nullable().optional(),
+    first_visit_date: z.string().nullable().optional(),
+  });
 
 export type Patients = z.infer<typeof selectPatientsSchema>;
 export type NewPatient = z.infer<typeof insertPatientsSchema>;

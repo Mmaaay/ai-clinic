@@ -1,26 +1,137 @@
 "use server";
 
 import { db } from "@/drizzle/db";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import z from "zod";
-import { eq } from "drizzle-orm";
 
 import {
   medicalRecordForm,
   medicalRecordFormSchema,
+  PatientAllergyForm,
+  PatientConditionForm,
+  PatientFollowupForm,
+  PatientForm,
+  PatientImagingForm,
+  PatientLabForm,
+  PatientMedicationForm,
+  PatientNoteForm,
+  PatientSocialHistoryForm,
+  PatientSurgeryForm,
+  PatientVisitForm,
 } from "@/drizzle/general-medical-history";
 
-import { patients } from "@/drizzle/schemas/patient_patients";
+import { patientAllergies } from "@/drizzle/schemas/medical-background/patient_allergies";
 import { patientConditions } from "@/drizzle/schemas/medical-background/patient_conditions";
 import { patientMedications } from "@/drizzle/schemas/medical-background/patient_medications";
-import { patientSurgeries } from "@/drizzle/schemas/patient_surgeries";
-import { patientAllergies } from "@/drizzle/schemas/medical-background/patient_allergies";
 import { patientSocialHistory } from "@/drizzle/schemas/medical-background/patient_social_history";
-import { patientLabs } from "@/drizzle/schemas/patient_labs";
-import { patientImaging } from "@/drizzle/schemas/patient_images";
 import { patientFollowups } from "@/drizzle/schemas/patient_follow-up";
+import { patientImaging } from "@/drizzle/schemas/patient_images";
+import { patientLabs } from "@/drizzle/schemas/patient_labs";
 import { patientNotes } from "@/drizzle/schemas/patient_notes";
+import { patients } from "@/drizzle/schemas/patient_patients";
+import { patientSurgeries } from "@/drizzle/schemas/patient_surgeries";
 import { patientVisits } from "@/drizzle/schemas/patient_visits";
+import { PgColumn, PgTable } from "drizzle-orm/pg-core";
+
+type SubTableKey = Exclude<keyof medicalRecordForm, "patient">;
+
+type SubRecordItem =
+  | PatientAllergyForm
+  | PatientConditionForm
+  | PatientMedicationForm
+  | PatientSocialHistoryForm
+  | PatientSurgeryForm
+  | PatientLabForm
+  | PatientImagingForm
+  | PatientFollowupForm
+  | PatientNoteForm
+  | PatientVisitForm;
+
+interface TableConfig {
+  key: SubTableKey;
+  table: PgTable & { id: PgColumn; patientId: PgColumn };
+  dateFields?: Record<string, string | boolean>;
+}
+
+const backgroundItemsNames: SubTableKey[] = [
+  "patientConditions",
+  "patientMedications",
+  "patientSurgeries",
+  "patientAllergies",
+  "patientSocialHistory",
+];
+
+const meaningfulFieldsByKey: Record<SubTableKey, string[]> = {
+  patientAllergies: ["allergen", "reaction"],
+  patientConditions: ["conditionName", "notes", "onsetDate"],
+  patientMedications: [
+    "drugName",
+    "dosage",
+    "frequency",
+    "startDate",
+    "endDate",
+  ],
+  patientSurgeries: [
+    "procedureName",
+    "procedureType",
+    "surgeryDate",
+    "hospitalName",
+    "surgeonName",
+    "operativeNotes",
+    "summaryNotes",
+  ],
+  patientSocialHistory: ["value", "notes"],
+  patientLabs: ["testName", "notes", "results", "labDate"],
+  patientImaging: [
+    "studyName",
+    "impression",
+    "report",
+    "imageUrl",
+    "studyDate",
+  ],
+  patientFollowups: [
+    "callDate",
+    "scheduledVisitDate",
+    "dietNotes",
+    "activityLevel",
+    "urineFrequency",
+    "spirometer",
+    "medicationAdherence",
+    "symptoms",
+    "bowelMovement",
+  ],
+  patientNotes: ["title", "content"],
+  patientVisits: [
+    "urgentPurpose",
+    "clinicalFindings",
+    "recommendations",
+    "weight",
+    "bmi",
+    "visitDate",
+    "nextAppointmentDate",
+    "newPrescriptions",
+    "investigationsOrdered",
+    "visitType",
+    "woundStatus",
+  ],
+};
+
+const hasMeaningfulValue = (value: unknown): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "number" || typeof value === "boolean") return true;
+  if (value instanceof Date) return true;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return false;
+};
+
+const isMeaningfulItem = (key: SubTableKey, item: SubRecordItem): boolean => {
+  const fields = meaningfulFieldsByKey[key] ?? [];
+  const record = item as Record<string, unknown>;
+  return fields.some((field) => hasMeaningfulValue(record[field]));
+};
 
 // --- Helper: Clean Phone Numbers (Arabic/Persian -> English) ---
 function sanitizePhone(phone: string | null | undefined): string {
@@ -54,61 +165,37 @@ function sanitizePhone(phone: string | null | undefined): string {
   return cleaned.replace(/\D/g, "");
 }
 
-function stripId<T extends { id?: unknown }>(item: T): Omit<T, "id"> {
-  const { ...rest } = item;
-  return rest;
-}
+function preparePatientData(
+  patientData: PatientForm | Partial<PatientForm> | null | undefined,
+): PatientForm | Partial<PatientForm> | null | undefined {
+  if (!patientData) return patientData;
+  const p = { ...patientData };
 
-export async function createPatientRecord(
-  rawInput: medicalRecordForm,
-): Promise<{
-  success: boolean;
-  patientId?: string;
-  error?: string;
-  fieldErrors?: Record<string, string[]>;
-  data?: { patientId: string };
-  message?: string;
-}> {
-  // --- STEP 1: PRE-PROCESS & CLEAN DATA ---
-  // Create a shallow copy to modify
-  const data = { ...rawInput };
+  if (p.phone) p.phone = sanitizePhone(p.phone);
+  if (p.optional_phone) p.optional_phone = sanitizePhone(p.optional_phone);
 
-  if (data.patient) {
-    // A. Fix Phone Numbers
-    if (data.patient.phone)
-      data.patient.phone = sanitizePhone(data.patient.phone);
-    if (data.patient.optional_phone)
-      data.patient.optional_phone = sanitizePhone(data.patient.optional_phone);
+  const hasArabicChars = /[\u0600-\u06FF]/.test(p.name || "");
+  if (hasArabicChars && !p.nameAr) p.nameAr = p.name;
 
-    // B. Auto-fill Arabic Name logic
-    const hasArabicChars = /[\u0600-\u06FF]/.test(data.patient.name || "");
-    if (hasArabicChars && !data.patient.nameAr) {
-      data.patient.nameAr = data.patient.name;
-    }
-
-    // C. Calculate BMI if missing but Height/Weight exist
-    if (
-      !data.patient.initial_bmi &&
-      data.patient.height &&
-      data.patient.initial_weight
-    ) {
-      const heightM = data.patient.height / 100;
-      const bmi = data.patient.initial_weight / (heightM * heightM);
-      data.patient.initial_bmi = Math.round(bmi);
-    }
+  if (!p.initial_bmi && p.height && p.initial_weight) {
+    const heightM = p.height / 100;
+    p.initial_bmi = Math.round(p.initial_weight / (heightM * heightM));
   }
 
-  // --- STEP 2: VALIDATE ---
+  // Convert string dates to Date objects for Postgres
+  if (p.dob) p.dob = new Date(p.dob);
+  if (p.first_visit_date) p.first_visit_date = new Date(p.first_visit_date);
+
+  return p;
+}
+
+export async function createPatientRecord(rawInput: medicalRecordForm) {
+  const data = { ...rawInput, patient: preparePatientData(rawInput.patient) };
   const validation = medicalRecordFormSchema.safeParse(data);
 
   if (!validation.success) {
-    console.error(
-      "Validation Error:",
-      z.flattenError(validation.error).fieldErrors,
-    );
     return {
       success: false,
-      error: "Validation failed. Please check the form fields.",
       fieldErrors: z.flattenError(validation.error).fieldErrors,
     };
   }
@@ -116,135 +203,118 @@ export async function createPatientRecord(
   const record = validation.data;
 
   try {
-    // --- STEP 3: DATABASE TRANSACTION ---
     const result = await db.transaction(async (tx) => {
-      // 1. Insert Patient (Includes all new fields: height, weight, dob, etc.)
-      // Zod has already stripped unknown fields, so record.patient is safe to insert
+      // 1. Primary Insert
       const [newPatient] = await tx
         .insert(patients)
-        .values({
-          ...record.patient,
-          // Ensure dates are Dates or null (Postgres doesn't like empty strings for timestamps)
-          dob: record.patient.dob ? new Date(record.patient.dob) : null,
-          first_visit_date: record.patient.first_visit_date
-            ? new Date(record.patient.first_visit_date)
-            : null,
-        })
+        .values(record.patient)
         .returning({ id: patients.id });
+      const pId = newPatient.id;
 
-      const patientId = newPatient.id;
-
-      // 2. Insert Related Arrays
-      // We use checks on .length to prevent SQL errors with empty values lists
-
-      if (record.patientConditions?.length) {
-        await tx.insert(patientConditions).values(
-          record.patientConditions.map((c) => ({
-            ...c,
-            patientId,
-            onsetDate: c.onsetDate ? new Date(c.onsetDate) : null,
-          })),
+      // 2. Parallel Sub-Inserts (Batching)
+      // We don't await each one individually; we fire them all at once.
+      const tasks = [];
+      if (record.patientConditions?.length)
+        tasks.push(
+          tx.insert(patientConditions).values(
+            record.patientConditions.map((c) => ({
+              ...c,
+              patientId: pId,
+              onsetDate: c.onsetDate ? new Date(c.onsetDate) : null,
+            })),
+          ),
         );
-      }
-
-      if (record.patientMedications?.length) {
-        await tx.insert(patientMedications).values(
-          record.patientMedications.map((m) => ({
-            ...m,
-            patientId,
-            startDate: m.startDate ? new Date(m.startDate) : null,
-            endDate: m.endDate ? new Date(m.endDate) : null,
-          })),
+      if (record.patientMedications?.length)
+        tasks.push(
+          tx.insert(patientMedications).values(
+            record.patientMedications.map((m) => ({
+              ...m,
+              patientId: pId,
+              startDate: m.startDate ? new Date(m.startDate) : null,
+              endDate: m.endDate ? new Date(m.endDate) : null,
+            })),
+          ),
         );
-      }
-
-      if (record.patientSurgeries?.length) {
-        await tx.insert(patientSurgeries).values(
-          record.patientSurgeries.map((s) => ({
-            ...s,
-            patientId,
-            surgeryDate: s.surgeryDate ? new Date(s.surgeryDate) : null,
-          })),
+      if (record.patientSurgeries?.length)
+        tasks.push(
+          tx.insert(patientSurgeries).values(
+            record.patientSurgeries.map((s) => ({
+              ...s,
+              patientId: pId,
+              surgeryDate: s.surgeryDate ? new Date(s.surgeryDate) : null,
+            })),
+          ),
         );
-      }
-
-      if (record.patientAllergies?.length) {
-        await tx
-          .insert(patientAllergies)
-          .values(record.patientAllergies.map((a) => ({ ...a, patientId })));
-      }
-
-      if (record.patientSocialHistory?.length) {
-        await tx
-          .insert(patientSocialHistory)
-          .values(
-            record.patientSocialHistory.map((s) => ({ ...s, patientId })),
-          );
-      }
-
-      if (record.patientLabs?.length) {
-        await tx.insert(patientLabs).values(
-          record.patientLabs.map((l) => ({
-            ...l,
-            patientId,
-            labDate: l.labDate ? new Date(l.labDate) : null,
-          })),
+      if (record.patientAllergies?.length)
+        tasks.push(
+          tx
+            .insert(patientAllergies)
+            .values(
+              record.patientAllergies.map((a) => ({ ...a, patientId: pId })),
+            ),
         );
-      }
-
-      if (record.patientImaging?.length) {
-        await tx.insert(patientImaging).values(
-          record.patientImaging.map((i) => ({
-            ...i,
-            patientId,
-            imageDate: i.studyDate ? new Date(i.studyDate) : null,
-          })),
+      if (record.patientSocialHistory?.length)
+        tasks.push(
+          tx.insert(patientSocialHistory).values(
+            record.patientSocialHistory.map((s) => ({
+              ...s,
+              patientId: pId,
+            })),
+          ),
         );
-      }
-
-      if (record.patientFollowups?.length) {
-        await tx
-          .insert(patientFollowups)
-          .values(record.patientFollowups.map((f) => ({ ...f, patientId })));
-      }
-
-      if (record.patientNotes?.length) {
-        await tx.insert(patientNotes).values(
-          record.patientNotes.map((n) => ({
-            ...n,
-            patientId,
-          })),
+      if (record.patientLabs?.length)
+        tasks.push(
+          tx.insert(patientLabs).values(
+            record.patientLabs.map((l) => ({
+              ...l,
+              patientId: pId,
+              labDate: l.labDate ? new Date(l.labDate) : null,
+            })),
+          ),
         );
-      }
+      if (record.patientImaging?.length)
+        tasks.push(
+          tx.insert(patientImaging).values(
+            record.patientImaging.map((i) => ({
+              ...i,
+              patientId: pId,
+              imageDate: i.studyDate ? new Date(i.studyDate) : null,
+            })),
+          ),
+        );
+      if (record.patientFollowups?.length)
+        tasks.push(
+          tx
+            .insert(patientFollowups)
+            .values(
+              record.patientFollowups.map((f) => ({ ...f, patientId: pId })),
+            ),
+        );
+      if (record.patientNotes?.length)
+        tasks.push(
+          tx
+            .insert(patientNotes)
+            .values(record.patientNotes.map((n) => ({ ...n, patientId: pId }))),
+        );
+      if (record.patientVisits?.length)
+        tasks.push(
+          tx
+            .insert(patientVisits)
+            .values(
+              record.patientVisits.map((v) => ({ ...v, patientId: pId })),
+            ),
+        );
 
-      if (record.patientVisits?.length) {
-        await tx
-          .insert(patientVisits)
-          .values(record.patientVisits.map((v) => ({ ...v, patientId })));
-      }
-
-      return { patientId };
+      await Promise.all(tasks);
+      return { patientId: pId };
     });
 
-    revalidatePath("/");
     revalidatePath("/patients");
-
-    return {
-      success: true,
-      data: result,
-      message: "Patient record created successfully",
-    };
-  } catch (error) {
-    console.error("Create Patient Error:", error);
-    // Generic error message to user, detailed log to server console
-    return {
-      success: false,
-      error:
-        error instanceof Error ? error.message : "Database transaction failed",
-    };
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: "Database transaction failed" };
   }
 }
-
 export async function updatePatientRecord({
   patientId,
   data: rawInput,
@@ -256,32 +326,9 @@ export async function updatePatientRecord({
   error?: string;
   fieldErrors?: Record<string, string[]>;
 }> {
-  const data = { ...rawInput };
-
-  if (data.patient) {
-    if (data.patient.phone)
-      data.patient.phone = sanitizePhone(data.patient.phone);
-    if (data.patient.optional_phone)
-      data.patient.optional_phone = sanitizePhone(data.patient.optional_phone);
-
-    const hasArabicChars = /[\u0600-\u06FF]/.test(data.patient.name || "");
-    if (hasArabicChars && !data.patient.nameAr) {
-      data.patient.nameAr = data.patient.name;
-    }
-
-    if (
-      !data.patient.initial_bmi &&
-      data.patient.height &&
-      data.patient.initial_weight
-    ) {
-      const heightM = data.patient.height / 100;
-      const bmi = data.patient.initial_weight / (heightM * heightM);
-      data.patient.initial_bmi = Math.round(bmi);
-    }
-  }
-
-  const updateSchema = medicalRecordFormSchema.partial();
-  const validation = updateSchema.safeParse(data);
+  const data = { ...rawInput, patient: preparePatientData(rawInput.patient) };
+  console.log("Updating patient record with data:", { patientId, data });
+  const validation = medicalRecordFormSchema.partial().safeParse(data);
 
   if (!validation.success) {
     console.error(
@@ -299,193 +346,151 @@ export async function updatePatientRecord({
 
   try {
     await db.transaction(async (tx) => {
-      if (record.patient) {
-        const cleanedPatient = Object.fromEntries(
-          Object.entries(record.patient).filter(
-            ([, value]) => value !== undefined,
-          ),
+      const promises: Promise<unknown>[] = [];
+
+      if (record.patient !== undefined) {
+        promises.push(
+          tx
+            .update(patients)
+            .set(record.patient)
+            .where(eq(patients.id, patientId)),
         );
-
-        if ("dob" in cleanedPatient) {
-          const dobValue = cleanedPatient.dob as
-            | string
-            | Date
-            | null
-            | undefined;
-          cleanedPatient.dob = dobValue ? new Date(dobValue) : null;
-        }
-        if ("first_visit_date" in cleanedPatient) {
-          const firstVisitValue = cleanedPatient.first_visit_date as
-            | string
-            | Date
-            | null
-            | undefined;
-          cleanedPatient.first_visit_date = firstVisitValue
-            ? new Date(firstVisitValue)
-            : null;
-        }
-
-        await tx
-          .update(patients)
-          .set(cleanedPatient)
-          .where(eq(patients.id, patientId));
       }
 
-      if (record.patientConditions !== undefined) {
-        await tx
-          .delete(patientConditions)
-          .where(eq(patientConditions.patientId, patientId));
-        if (record.patientConditions?.length) {
-          await tx.insert(patientConditions).values(
-            record.patientConditions.map((c) => ({
-              ...stripId(c),
-              patientId,
-              onsetDate: c.onsetDate ? new Date(c.onsetDate) : null,
-            })),
+      const subTableConfigs: TableConfig[] = [
+        {
+          key: "patientConditions",
+          table: patientConditions,
+          dateFields: { onsetDate: true },
+        },
+        {
+          key: "patientMedications",
+          table: patientMedications,
+          dateFields: { startDate: true, endDate: true },
+        },
+        {
+          key: "patientSurgeries",
+          table: patientSurgeries,
+          dateFields: { surgeryDate: true },
+        },
+        { key: "patientAllergies", table: patientAllergies },
+        { key: "patientSocialHistory", table: patientSocialHistory },
+        {
+          key: "patientLabs",
+          table: patientLabs,
+          dateFields: { labDate: true },
+        },
+        {
+          key: "patientImaging",
+          table: patientImaging,
+          dateFields: { studyDate: "imageDate" },
+        },
+        { key: "patientFollowups", table: patientFollowups },
+        { key: "patientNotes", table: patientNotes },
+        { key: "patientVisits", table: patientVisits },
+      ];
+
+      for (const config of subTableConfigs) {
+        const key = config.key as keyof typeof record;
+        const table = config.table;
+        const value = record[key];
+
+        if (value !== undefined) {
+          const items = value as SubRecordItem[];
+
+          promises.push(
+            (async () => {
+              const meaningfulItems = items.filter((item) =>
+                isMeaningfulItem(config.key, item),
+              );
+
+              if (!items || meaningfulItems.length === 0) {
+                await tx.delete(table).where(eq(table.patientId, patientId));
+                if (backgroundItemsNames.includes(config.key)) {
+                  revalidatePath(`/patients/${patientId}/background`);
+                } else {
+                  revalidatePath(
+                    `/patients/${patientId}/${config.key
+                      .replace("patient", "")
+                      .toLocaleLowerCase()}`,
+                  );
+                }
+                return;
+              }
+
+              if (meaningfulItems.length > 0) {
+                const values = meaningfulItems.map((item) => {
+                  const cleaned: Record<string, unknown> = {
+                    ...(item as Record<string, unknown>),
+                    patientId,
+                  };
+
+                  if ("id" in cleaned && cleaned.id === undefined) {
+                    delete cleaned.id;
+                  }
+
+                  if (config.dateFields) {
+                    Object.entries(config.dateFields).forEach(
+                      ([field, target]) => {
+                        const targetField =
+                          typeof target === "string" ? target : field;
+                        const rawValue = (item as Record<string, unknown>)[
+                          field
+                        ];
+                        if (rawValue instanceof Date) {
+                          cleaned[targetField] = rawValue;
+                        } else if (rawValue) {
+                          cleaned[targetField] = new Date(String(rawValue));
+                        } else {
+                          cleaned[targetField] = null;
+                        }
+                      },
+                    );
+                  }
+
+                  return cleaned;
+                });
+
+                const upserts = values.map((value) => {
+                  const updateSet = { ...value } as typeof table.$inferInsert;
+                  if ("id" in updateSet) {
+                    delete (updateSet as { id?: unknown }).id;
+                  }
+                  if ("patientId" in updateSet) {
+                    delete (updateSet as { patientId?: unknown }).patientId;
+                  }
+
+                  return tx
+                    .insert(table)
+                    .values(value as typeof table.$inferInsert)
+                    .onConflictDoUpdate({
+                      target: table.id,
+                      set: updateSet,
+                    });
+                });
+
+                await Promise.all(upserts);
+                if (backgroundItemsNames.includes(config.key)) {
+                  revalidatePath(`/patients/${patientId}/background`);
+                } else {
+                  revalidatePath(
+                    `/patients/${patientId}/${config.key
+                      .replace("patient", "")
+                      .toLocaleLowerCase()}`,
+                  );
+                }
+              }
+            })(),
           );
         }
       }
 
-      if (record.patientMedications !== undefined) {
-        await tx
-          .delete(patientMedications)
-          .where(eq(patientMedications.patientId, patientId));
-        if (record.patientMedications?.length) {
-          await tx.insert(patientMedications).values(
-            record.patientMedications.map((m) => ({
-              ...stripId(m),
-              patientId,
-              startDate: m.startDate ? new Date(m.startDate) : null,
-              endDate: m.endDate ? new Date(m.endDate) : null,
-            })),
-          );
-        }
-      }
-
-      if (record.patientSurgeries !== undefined) {
-        await tx
-          .delete(patientSurgeries)
-          .where(eq(patientSurgeries.patientId, patientId));
-        if (record.patientSurgeries?.length) {
-          await tx.insert(patientSurgeries).values(
-            record.patientSurgeries.map((s) => ({
-              ...stripId(s),
-              patientId,
-              surgeryDate: s.surgeryDate ? new Date(s.surgeryDate) : null,
-            })),
-          );
-        }
-      }
-
-      if (record.patientAllergies !== undefined) {
-        await tx
-          .delete(patientAllergies)
-          .where(eq(patientAllergies.patientId, patientId));
-        if (record.patientAllergies?.length) {
-          await tx.insert(patientAllergies).values(
-            record.patientAllergies.map((a) => ({
-              ...stripId(a),
-              patientId,
-            })),
-          );
-        }
-      }
-
-      if (record.patientSocialHistory !== undefined) {
-        await tx
-          .delete(patientSocialHistory)
-          .where(eq(patientSocialHistory.patientId, patientId));
-        if (record.patientSocialHistory?.length) {
-          await tx.insert(patientSocialHistory).values(
-            record.patientSocialHistory.map((s) => ({
-              ...stripId(s),
-              patientId,
-            })),
-          );
-        }
-      }
-
-      if (record.patientLabs !== undefined) {
-        await tx
-          .delete(patientLabs)
-          .where(eq(patientLabs.patientId, patientId));
-        if (record.patientLabs?.length) {
-          await tx.insert(patientLabs).values(
-            record.patientLabs.map((l) => ({
-              ...stripId(l),
-              patientId,
-              labDate: l.labDate ? new Date(l.labDate) : null,
-            })),
-          );
-        }
-      }
-
-      if (record.patientImaging !== undefined) {
-        await tx
-          .delete(patientImaging)
-          .where(eq(patientImaging.patientId, patientId));
-        if (record.patientImaging?.length) {
-          await tx.insert(patientImaging).values(
-            record.patientImaging.map((i) => ({
-              ...stripId(i),
-              patientId,
-              imageDate: i.studyDate ? new Date(i.studyDate) : null,
-            })),
-          );
-        }
-      }
-
-      if (record.patientFollowups !== undefined) {
-        await tx
-          .delete(patientFollowups)
-          .where(eq(patientFollowups.patientId, patientId));
-        if (record.patientFollowups?.length) {
-          await tx.insert(patientFollowups).values(
-            record.patientFollowups.map((f) => ({
-              ...stripId(f),
-              patientId,
-            })),
-          );
-        }
-      }
-
-      if (record.patientNotes !== undefined) {
-        await tx
-          .delete(patientNotes)
-          .where(eq(patientNotes.patientId, patientId));
-        if (record.patientNotes?.length) {
-          await tx.insert(patientNotes).values(
-            record.patientNotes.map((n) => ({
-              ...stripId(n),
-              patientId,
-            })),
-          );
-        }
-      }
-
-      if (record.patientVisits !== undefined) {
-        await tx
-          .delete(patientVisits)
-          .where(eq(patientVisits.patientId, patientId));
-        if (record.patientVisits?.length) {
-          await tx.insert(patientVisits).values(
-            record.patientVisits.map((v) => ({
-              ...stripId(v),
-              patientId,
-            })),
-          );
-        }
-      }
+      await Promise.all(promises);
+      console.log("Patient record updated successfully:", {
+        patientId,
+        updatedFields: Object.keys(record),
+      });
     });
-
-    revalidatePath("/patients");
-    revalidatePath(`/patients/${patientId}`);
-    revalidatePath(`/patients/${patientId}/background`);
-    revalidatePath(`/patients/${patientId}/follow-up`);
-    revalidatePath(`/patients/${patientId}/labs`);
-    revalidatePath(`/patients/${patientId}/imaging`);
-    revalidatePath(`/patients/${patientId}/notes`);
-    revalidatePath(`/patients/${patientId}/visits`);
 
     return { success: true };
   } catch (error) {

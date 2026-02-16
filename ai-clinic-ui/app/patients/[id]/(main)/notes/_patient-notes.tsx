@@ -22,7 +22,6 @@ import {
   StickyNote,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useMemo, useState } from "react";
 
 // Types from your schema
@@ -58,8 +57,6 @@ export default function PatientNotesSection({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [, setServerError] = useState<string | null>(null);
 
-  const router = useRouter();
-
   const { data: notesData, isLoading } = useQuery({
     queryKey: ["patient", "notes", id],
     queryFn: () => getPatientNotesById({ patientId: id }),
@@ -90,7 +87,7 @@ export default function PatientNotesSection({ id }: { id: string }) {
             setServerError("Failed to create patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

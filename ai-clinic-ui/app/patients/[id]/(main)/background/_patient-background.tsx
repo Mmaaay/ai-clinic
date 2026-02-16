@@ -27,7 +27,11 @@ import type { PatientMedication } from "@/drizzle/schemas/medical-background/pat
 import type { PatientSurgery } from "@/drizzle/schemas/patient_surgeries";
 import type { PatientSocialHistory } from "@/drizzle/schemas/medical-background/patient_social_history";
 
-const requiredString = z.string().min(1, "Required");
+const requiredString = z
+  .string()
+  .trim()
+  .min(1, "Enter at least 1 character")
+  .optional();
 const severitySchema = z.enum([
   "Mild",
   "Moderate",
@@ -68,14 +72,12 @@ export default function PatientBackgroundSection({
   const [isEditing, setIsEditing] = useState(false);
   const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD string
 
-  const {
-    data: patientBackgroundData,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: patientBackgroundData, isLoading } = useQuery({
     queryKey: ["patient", "background", patientId],
     queryFn: () => getPatientBackgroundById({ patientId }),
     staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const form = useForm({
@@ -100,7 +102,6 @@ export default function PatientBackgroundSection({
 
       if (result.success) {
         setIsEditing(false);
-        refetch();
       }
     },
   });

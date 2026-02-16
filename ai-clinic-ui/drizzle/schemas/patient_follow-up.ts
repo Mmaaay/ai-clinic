@@ -66,5 +66,15 @@ export const insertPatientFollowupSchema = createInsertSchema(
 ).omit({
   patientId: true,
 });
+export const aiPatientFollowupSchema = createInsertSchema(patientFollowups)
+  .omit({
+    id: true,
+    patientId: true,
+  })
+  .extend({
+    callDate: z.string().nullable().optional(),
+    scheduledVisitDate: z.string().nullable().optional(),
+  });
+
 export type PatientFollowup = z.infer<typeof selectPatientFollowupSchema>;
 export type NewPatientFollowup = z.infer<typeof insertPatientFollowupSchema>;

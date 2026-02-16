@@ -1,33 +1,32 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo, useEffect, startTransition } from "react";
 import { updatePatientRecord } from "@/actions/patient-actions/medical-record-actions";
 import ImagingForm from "@/components/patient-form/patient-imaging-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  FileText,
-  ChevronDown,
-  Calendar,
-  Image as ImageIcon,
-  Activity,
-  Search,
-  X,
-  Filter,
-} from "lucide-react";
-import { getPatientImagingById } from "@/lib/server/patient-imaging-by-id";
+import { medicalRecordFormSchema } from "@/drizzle/general-medical-history";
 import { PatientImagingRecord } from "@/drizzle/schemas/patient_images";
 import { formatDateLocal } from "@/lib/helpers/format-date-local";
+import { getPatientImagingById } from "@/lib/server/patient-imaging-by-id";
 import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
-import { useRouter } from "next/navigation";
-import { medicalRecordFormSchema } from "@/drizzle/general-medical-history";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Activity,
+  Calendar,
+  ChevronDown,
+  FileText,
+  Filter,
+  Image as ImageIcon,
+  Search,
+  X,
+} from "lucide-react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 
 // Helper to get icons based on modality
 const getModalityIcon = (modality: string | null) => {
@@ -113,8 +112,6 @@ export default function PatientImagingSection({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [, setServerError] = useState<string | null>(null);
 
-  const router = useRouter();
-
   const { data: imagingData, isLoading } = useQuery({
     queryKey: ["patient", "imaging", id],
     queryFn: () => getPatientImagingById({ patientId: id }),
@@ -150,7 +147,7 @@ export default function PatientImagingSection({ id }: { id: string }) {
             setServerError("Failed to create patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

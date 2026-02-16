@@ -9,7 +9,11 @@ import { zValidate } from "@/lib/validation/patient-data-validate";
 import type { PatientMedication } from "@/drizzle/schemas/medical-background/patient_medications";
 import z from "zod";
 
-const requiredString = z.string().min(1, "Required");
+const requiredString = z
+  .string()
+  .trim()
+  .min(1, "Enter at least 1 character")
+  .optional();
 
 type MedicationForm = {
   drugName?: string | null;

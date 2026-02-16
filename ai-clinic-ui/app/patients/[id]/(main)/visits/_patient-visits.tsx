@@ -30,7 +30,6 @@ import {
   Weight,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useMemo, useState } from "react";
 
 // Use the inferred type from your Drizzle schema
@@ -52,7 +51,6 @@ const getWoundStatusColor = (status: string) => {
 };
 
 export default function PatientVisitsSection({ id }: { id: string }) {
-  const router = useRouter();
   const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD string
   const [isEditing, setIsEditing] = useState(false);
 
@@ -90,7 +88,7 @@ export default function PatientVisitsSection({ id }: { id: string }) {
             setServerError("Failed to update patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

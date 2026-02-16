@@ -16,15 +16,13 @@ import { getPatientFollowupById } from "@/lib/server/patient-followup-by-id";
 import { medicalRecordFormOpts, useAppForm } from "@/lib/tansack-form";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, ChevronDown, Clipboard, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { startTransition, useEffect, useMemo, useState } from "react";
 
 export default function PatientFollowupSection({ id }: { id: string }) {
   const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD string
   const [isEditing, setIsEditing] = useState(false);
   const [, setServerError] = useState<string | null>(null);
-
-  const router = useRouter();
 
   const { data: followupDataFromQuery } = useQuery({
     queryKey: ["patient", "followup", id],
@@ -58,7 +56,7 @@ export default function PatientFollowupSection({ id }: { id: string }) {
             setServerError("Failed to update patient record.");
             return;
           }
-          router.push("/");
+          setIsEditing(false);
         } catch (error) {
           console.error("Error:", error);
           setServerError("An unexpected error occurred");

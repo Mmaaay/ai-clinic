@@ -76,5 +76,17 @@ export const insertPatientVisitsSchema = createInsertSchema(patientVisits, {
   createdAt: true,
   updatedAt: true,
 });
+export const aiPatientVisitsSchema = createInsertSchema(patientVisits)
+  .omit({
+    id: true,
+    patientId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    visitDate: z.string().nullable().optional(),
+    nextAppointmentDate: z.string().nullable().optional(),
+  });
+
 export type PatientVisitsRecord = z.infer<typeof selectPatientVisitsSchema>;
 export type NewPatientVisitsRecord = z.infer<typeof insertPatientVisitsSchema>;

@@ -15,7 +15,11 @@ import {
 } from "./shared-background-sections";
 import { withForm, medicalRecordFormOpts } from "@/lib/tansack-form";
 
-const requiredString = z.string().min(1, "Required");
+const requiredString = z
+  .string()
+  .trim()
+  .min(1, "Enter at least 1 character")
+  .optional();
 const severitySchema = z.enum([
   "Mild",
   "Moderate",

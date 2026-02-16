@@ -40,6 +40,16 @@ export const patientConditionRelation = relations(
   }),
 );
 
+export const aiPatientConditions = createInsertSchema(patientConditions)
+  .omit({
+    id: true,
+    patientId: true,
+    createdAt: true,
+    updateAt: true,
+  })
+  .extend({
+    onsetDate: z.string().nullable().optional(),
+  });
 export const selectPatientConditionsSchema =
   createSelectSchema(patientConditions);
 export const insertPatientConditionsSchema = createInsertSchema(

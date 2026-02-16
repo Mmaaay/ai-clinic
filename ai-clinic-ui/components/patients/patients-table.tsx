@@ -28,12 +28,12 @@ const columns: ColumnDef<Patients>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: "Visit Date",
+    header: "Added Date",
     cell: ({ row }) =>
       new Intl.DateTimeFormat("en-US", {
         dateStyle: "medium",
         timeZone: "UTC",
-      }).format(new Date(row.original.updatedAt)),
+      }).format(new Date(row.original.createdAt)),
   },
 ];
 
@@ -43,7 +43,7 @@ interface PatientsTableProps {
 
 export function PatientsTable({ patients }: PatientsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "name", desc: false },
+    { id: "createdAt", desc: true },
   ]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
@@ -55,7 +55,8 @@ export function PatientsTable({ patients }: PatientsTableProps) {
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnMount: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library

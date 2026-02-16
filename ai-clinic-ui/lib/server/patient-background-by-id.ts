@@ -25,29 +25,23 @@ export async function getPatientBackgroundById(rawInput: unknown) {
   const { patientId } = validation.data;
 
   const [allergies, conditions, medications, socialHistory, surgeries] =
-    await db.transaction(async (tx) => {
-      const allergies = await tx.query.patientAllergies.findMany({
+    await Promise.all([
+      db.query.patientAllergies.findMany({
         where: (allergy, { eq }) => eq(allergy.patientId, patientId),
-      });
-
-      const conditions = await tx.query.patientConditions.findMany({
+      }),
+      db.query.patientConditions.findMany({
         where: (condition, { eq }) => eq(condition.patientId, patientId),
-      });
-
-      const medications = await tx.query.patientMedications.findMany({
+      }),
+      db.query.patientMedications.findMany({
         where: (medication, { eq }) => eq(medication.patientId, patientId),
-      });
-
-      const socialHistory = await tx.query.patientSocialHistory.findMany({
+      }),
+      db.query.patientSocialHistory.findMany({
         where: (history, { eq }) => eq(history.patientId, patientId),
-      });
-
-      const surgeries = await tx.query.patientSurgeries.findMany({
+      }),
+      db.query.patientSurgeries.findMany({
         where: (surgery, { eq }) => eq(surgery.patientId, patientId),
-      });
-
-      return [allergies, conditions, medications, socialHistory, surgeries];
-    });
+      }),
+    ]);
 
   return {
     allergies,

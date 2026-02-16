@@ -38,6 +38,12 @@ export const patientAllergyRelations = relations(
   }),
 );
 
+export const aiPatientAllergies = createInsertSchema(patientAllergies).omit({
+  id: true,
+  patientId: true,
+  createdAt: true,
+  updatedAt: true,
+});
 export const selectPatientAllergiesSchema =
   createSelectSchema(patientAllergies);
 export const insertPatientAllergiesSchema = createInsertSchema(

@@ -1,15 +1,48 @@
 import z from "zod";
-import { insertPatientAllergiesSchema } from "./schemas/medical-background/patient_allergies";
-import { insertPatientsSchema } from "./schemas/patient_patients";
-import { insertPatientConditionsSchema } from "./schemas/medical-background/patient_conditions";
-import { insertPatientMedicationsSchema } from "./schemas/medical-background/patient_medications";
-import { insertPatientSocialHistorySchema } from "./schemas/medical-background/patient_social_history";
-import { insertPatientFollowupSchema } from "./schemas/patient_follow-up";
-import { insertPatientsImagingSchema } from "./schemas/patient_images";
-import { insertPatientNotesSchema } from "./schemas/patient_notes";
-import { insertPatientVisitsSchema } from "./schemas/patient_visits";
-import { insertPatientLabsSchema } from "./schemas/patient_labs";
-import { insertPatientSurgeriesSchema } from "./schemas/patient_surgeries";
+import {
+  insertPatientAllergiesSchema,
+  aiPatientAllergies,
+} from "./schemas/medical-background/patient_allergies";
+import {
+  insertPatientsSchema,
+  aiPatientsSchema,
+} from "./schemas/patient_patients";
+import {
+  insertPatientConditionsSchema,
+  aiPatientConditions,
+} from "./schemas/medical-background/patient_conditions";
+import {
+  insertPatientMedicationsSchema,
+  aiPatientMedications,
+} from "./schemas/medical-background/patient_medications";
+import {
+  insertPatientSocialHistorySchema,
+  aiPatientSocialHistory,
+} from "./schemas/medical-background/patient_social_history";
+import {
+  insertPatientFollowupSchema,
+  aiPatientFollowupSchema,
+} from "./schemas/patient_follow-up";
+import {
+  insertPatientsImagingSchema,
+  aiPatientImagingSchema,
+} from "./schemas/patient_images";
+import {
+  insertPatientNotesSchema,
+  aiPatientNotesSchema,
+} from "./schemas/patient_notes";
+import {
+  insertPatientVisitsSchema,
+  aiPatientVisitsSchema,
+} from "./schemas/patient_visits";
+import {
+  insertPatientLabsSchema,
+  aiPatientLabsSchema,
+} from "./schemas/patient_labs";
+import {
+  insertPatientSurgeriesSchema,
+  aiPatientSurgeriesSchema,
+} from "./schemas/patient_surgeries";
 
 export const medicalRecordFormSchema = z.object({
   patientAllergies: z.array(insertPatientAllergiesSchema).optional(),
@@ -17,7 +50,7 @@ export const medicalRecordFormSchema = z.object({
   patientMedications: z.array(insertPatientMedicationsSchema).optional(),
   patientSocialHistory: z.array(insertPatientSocialHistorySchema).optional(),
   patientSurgeries: z.array(insertPatientSurgeriesSchema).optional(),
-  patient: insertPatientsSchema.partial(),
+  patient: insertPatientsSchema.required({ name: true }),
   patientFollowups: z.array(insertPatientFollowupSchema).optional(),
   patientLabs: z.array(insertPatientLabsSchema).optional(),
   patientImaging: z.array(insertPatientsImagingSchema).optional(),
@@ -26,6 +59,23 @@ export const medicalRecordFormSchema = z.object({
 });
 
 export type medicalRecordForm = z.infer<typeof medicalRecordFormSchema>;
+
+// AI-safe schema: no Date objects, no id/patientId/timestamps — safe for JSON Schema / Gemini
+export const medicalRecordAiSchema = z.object({
+  patientAllergies: z.array(aiPatientAllergies).optional(),
+  patientConditions: z.array(aiPatientConditions).optional(),
+  patientMedications: z.array(aiPatientMedications).optional(),
+  patientSocialHistory: z.array(aiPatientSocialHistory).optional(),
+  patientSurgeries: z.array(aiPatientSurgeriesSchema).optional(),
+  patient: aiPatientsSchema,
+  patientFollowups: z.array(aiPatientFollowupSchema).optional(),
+  patientLabs: z.array(aiPatientLabsSchema).optional(),
+  patientImaging: z.array(aiPatientImagingSchema).optional(),
+  patientVisits: z.array(aiPatientVisitsSchema).optional(),
+  patientNotes: z.array(aiPatientNotesSchema).optional(),
+});
+export type MedicalRecordAi = z.infer<typeof medicalRecordAiSchema>;
+
 export type PatientForm = z.infer<typeof insertPatientsSchema>;
 export type PatientAllergyForm = z.infer<typeof insertPatientAllergiesSchema>;
 export type PatientConditionForm = z.infer<

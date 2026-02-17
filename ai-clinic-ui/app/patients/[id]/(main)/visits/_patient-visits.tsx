@@ -282,7 +282,7 @@ export default function PatientVisitsSection({ id }: { id: string }) {
 
             <CollapsibleContent className="pt-2">
               <Card className="border-t-0 rounded-t-none border-x-0 bg-slate-50/30 dark:bg-slate-900/30 shadow-none">
-                <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <CardContent className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                   {/* Column 1: Vitals & Status */}
                   <div className="space-y-4">
                     <div className="flex gap-4">

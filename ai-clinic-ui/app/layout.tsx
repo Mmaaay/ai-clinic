@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           <Sidebar />
-          <main className="pl-14">{children}</main>
+          <main className="pb-14 md:pb-0 md:pl-14">{children}</main>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryProvider>
       </body>

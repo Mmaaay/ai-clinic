@@ -95,7 +95,7 @@ function NotesArray({
                 <Plus className="w-4 h-4 mr-1" /> Add Note
               </Button>
             </CardHeader>
-            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {(arrayField.state.value || []).map(
                 (_: PatientNoteForm, index: number) => (
                   <div
@@ -112,7 +112,7 @@ function NotesArray({
                       <Trash2 className="w-4 h-4" />
                     </Button>
 
-                    <div className="space-y-3 pr-8">
+                    <div className="space-y-3 sm:pr-8">
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase">
                           Title / Subject
@@ -135,8 +135,8 @@ function NotesArray({
                         </form.Field>
                       </div>
 
-                      <div className="flex gap-2">
-                        <div className="w-1/2 space-y-1">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="w-full sm:w-1/2 space-y-1">
                           <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                             <Tag className="w-3 h-3" /> Category
                           </label>
@@ -167,7 +167,7 @@ function NotesArray({
                             }}
                           </form.Field>
                         </div>
-                        <div className="w-1/2 space-y-1">
+                        <div className="w-full sm:w-1/2 space-y-1">
                           <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                             <Calendar className="w-3 h-3" /> Date
                           </label>
@@ -217,7 +217,7 @@ function NotesArray({
               )}
 
               {(arrayField.state.value || []).length === 0 && (
-                <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center py-16 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
+                <div className="col-span-1 sm:col-span-2 flex flex-col items-center justify-center py-16 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
                   <StickyNote className="w-12 h-12 mb-3 opacity-20 text-amber-500" />
                   <p className="text-sm">No notes added.</p>
                 </div>

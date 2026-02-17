@@ -287,8 +287,8 @@ export default function PatientSurgerySection({ id }: { id: string }) {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Left Column */}
                       <div className="space-y-3">
                         <div>

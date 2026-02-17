@@ -267,10 +267,10 @@ export default function PatientLabsSection({ id }: { id: string }) {
   return (
     <div className="space-y-4">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-muted/30 p-3 rounded-xl border border-dashed gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-muted/30 p-3 rounded-xl border border-dashed gap-3">
         <div className="flex items-center gap-2">
           <Beaker className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-semibold tracking-tight">
+          <h2 className="text-base sm:text-lg font-semibold tracking-tight">
             Laboratory Reports
           </h2>
         </div>
@@ -279,7 +279,7 @@ export default function PatientLabsSection({ id }: { id: string }) {
           Edit
         </Button>
 
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {/* SEARCH INPUT */}
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

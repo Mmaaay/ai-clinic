@@ -204,12 +204,14 @@ export default function PatientBackgroundSection({
   );
 
   return (
-    <div className="space-y-6 p-2">
+    <div className="space-y-4 sm:space-y-6 p-0 sm:p-2">
       {/* HEADER ACTIONS */}
-      <div className="flex justify-between items-center bg-muted/30 p-3 rounded-xl border border-dashed">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-muted/30 p-2.5 sm:p-3 rounded-xl border border-dashed gap-2 sm:gap-3">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5 text-muted-foreground" />
-          <h1 className="font-bold tracking-tight">Medical Background</h1>
+          <History className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+          <h1 className="text-sm sm:text-base font-bold tracking-tight">
+            Medical Background
+          </h1>
         </div>
         {!isEditing && (
           <div className="relative">

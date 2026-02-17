@@ -71,70 +71,72 @@ export function PatientTabNav({ patientId }: { patientId: string }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-wrap gap-1 mb-6 bg-muted/50 p-2 rounded-xl">
-      <div className="mb-4">
+    <div className="mb-4 sm:mb-6 space-y-2">
+      <div className="flex items-center">
         <Button asChild variant="ghost" size="sm">
           <Link href="/">← Back</Link>
         </Button>
       </div>
-      {tabs.map((tab) => {
-        // Construct full path
-        const href =
-          tab.type === "path" ? `/patients/${patientId}${tab.path}` : "#";
+      <div className="overflow-x-auto -mx-2 px-2 scrollbar-hide">
+        <div className="flex gap-1 bg-muted/50 p-1.5 sm:p-2 rounded-xl min-w-max">
+          {tabs.map((tab) => {
+            // Construct full path
+            const href =
+              tab.type === "path" ? `/patients/${patientId}${tab.path}` : "#";
 
-        // Check active state (handle default route vs sub-routes)
-        // Logic: if tab.path is empty, we are active if the path ends in patientId
-        // otherwise, check if path includes the tab path.
-        const isActive =
-          tab.type === "path" && tab.path === ""
-            ? pathname === `/patients/${patientId}`
-            : pathname.includes(tab.path);
+            // Check active state
+            const isActive =
+              tab.type === "path" && tab.path === ""
+                ? pathname === `/patients/${patientId}`
+                : pathname.includes(tab.path);
 
-        if (tab.type === "path") {
-          return (
-            <Link
-              key={tab.id}
-              href={href}
-              prefetch={false}
-              className={cn(
-                "relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                isActive
-                  ? "text-white shadow-lg transform -translate-y-0.5 z-10"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:bg-white/50",
-              )}
-              style={
-                isActive
-                  ? {
-                      backgroundColor: tab.color,
-                      boxShadow: `0 4px 14px ${tab.color}40`,
-                    }
-                  : {
-                      borderBottom: `3px solid ${tab.color}30`,
-                    }
-              }
-            >
-              {/* Bookmark notch effect */}
-              {isActive && (
-                <span
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0"
-                  style={{
-                    borderLeft: "6px solid transparent",
-                    borderRight: "6px solid transparent",
-                    borderTop: `6px solid ${tab.color}`,
-                  }}
-                />
-              )}
-              {tab.label}
-            </Link>
-          );
-        } else {
-          return (
-            <div key={tab.id} className="relative">
-              <ExportModal patientId={patientId} />
-            </div>
-          );
-        }
-      })}
+            if (tab.type === "path") {
+              return (
+                <Link
+                  key={tab.id}
+                  href={href}
+                  prefetch={false}
+                  className={cn(
+                    "relative px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap",
+                    isActive
+                      ? "text-white shadow-lg transform -translate-y-0.5 z-10"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:bg-white/50",
+                  )}
+                  style={
+                    isActive
+                      ? {
+                          backgroundColor: tab.color,
+                          boxShadow: `0 4px 14px ${tab.color}40`,
+                        }
+                      : {
+                          borderBottom: `3px solid ${tab.color}30`,
+                        }
+                  }
+                >
+                  {/* Bookmark notch effect */}
+                  {isActive && (
+                    <span
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0"
+                      style={{
+                        borderLeft: "6px solid transparent",
+                        borderRight: "6px solid transparent",
+                        borderTop: `6px solid ${tab.color}`,
+                      }}
+                    />
+                  )}
+                  {tab.label}
+                </Link>
+              );
+            } else {
+              return (
+                <div key={tab.id} className="relative">
+                  <ExportModal patientId={patientId} />
+                </div>
+              );
+            }
+          })}
+        </div>
+      </div>
     </div>
   );
 }

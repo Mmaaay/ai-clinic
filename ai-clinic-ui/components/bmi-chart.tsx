@@ -63,24 +63,30 @@ export const BMITrendChart = React.memo(function BMITrendChart({
       className={`
         relative bg-linear-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 
         border-2 rounded-xl overflow-hidden transition-[height,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
-        ${isHovered ? "w-full h-48" : "w-full h-32"}
+        ${isHovered ? "w-full h-48 sm:h-48" : "w-full h-28 sm:h-32"}
         shadow-md hover:shadow-xl border-slate-200/50 dark:border-slate-700/50 hover:border-slate-200 dark:hover:border-slate-700
       `}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleMouseEnter}
+      onTouchEnd={handleMouseLeave}
     >
       {/* Header Information */}
-      <div className="absolute inset-x-0 top-3 z-10 flex justify-center">
-        <div className="flex items-baseline gap-6 text-center">
+      <div className="absolute inset-x-0 top-2 sm:top-3 z-10 flex justify-center">
+        <div className="flex items-baseline gap-3 sm:gap-6 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
               Current BMI
             </span>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-bold ${category.color}`}>
+            <div className="flex items-baseline gap-1 sm:gap-2">
+              <span
+                className={`text-2xl sm:text-3xl font-bold ${category.color}`}
+              >
                 {currentBMI.toFixed(1)}
               </span>
-              <span className={`text-sm font-medium ${category.color}`}>
+              <span
+                className={`text-xs sm:text-sm font-medium ${category.color}`}
+              >
                 {category.text}
               </span>
             </div>

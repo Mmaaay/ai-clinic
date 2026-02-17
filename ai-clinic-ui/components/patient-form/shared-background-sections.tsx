@@ -247,9 +247,9 @@ export function ConditionsSection({
           ? fields.map((field, index) => (
               <div
                 key={field.id || index}
-                className="grid grid-cols-1 md:grid-cols-12 gap-3 border p-3 rounded-lg relative bg-muted/20"
+                className="grid grid-cols-1 sm:grid-cols-12 gap-3 border p-3 rounded-lg relative bg-muted/20"
               >
-                <div className="absolute top-2 right-2 md:static md:col-span-1 md:flex md:items-center md:justify-center">
+                <div className="absolute top-2 right-2 sm:static sm:col-span-1 sm:flex sm:items-center sm:justify-center">
                   {onRemove && (
                     <Button
                       type="button"
@@ -264,7 +264,7 @@ export function ConditionsSection({
                 </div>
 
                 {renderField && displayDate && (
-                  <div className="md:col-span-2 space-y-1">
+                  <div className="sm:col-span-2 space-y-1">
                     <label className="text-xs font-medium text-muted-foreground">
                       Date
                     </label>
@@ -272,7 +272,7 @@ export function ConditionsSection({
                   </div>
                 )}
 
-                <div className="md:col-span-4 space-y-1">
+                <div className="sm:col-span-4 space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">
                     Condition
                   </label>
@@ -286,7 +286,7 @@ export function ConditionsSection({
                   ) : null}
                 </div>
 
-                <div className="md:col-span-2 space-y-1">
+                <div className="sm:col-span-2 space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">
                     Status
                   </label>
@@ -306,7 +306,7 @@ export function ConditionsSection({
                   ) : null}
                 </div>
 
-                <div className="md:col-span-3 space-y-1">
+                <div className="sm:col-span-3 space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">
                     Notes
                   </label>
@@ -445,7 +445,7 @@ export function MedicationsSection({
             </div>
           ))
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {fields.map((m, i) => (
               <Card
                 key={i}
@@ -535,7 +535,7 @@ export function SurgeriesSection({
                 )}
 
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-muted-foreground uppercase">
                         Procedure Name
@@ -599,7 +599,7 @@ export function SurgeriesSection({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-muted-foreground uppercase">
                         Hospital Name
@@ -630,7 +630,7 @@ export function SurgeriesSection({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-muted-foreground uppercase">
                         First Assistant
@@ -692,7 +692,7 @@ export function SurgeriesSection({
                     ) : null}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-muted-foreground uppercase">
                         Operative Notes
@@ -799,8 +799,11 @@ export function SocialHistorySection({
         )}
 
         {fields.map((field, index) => (
-          <div key={field.id || index} className="flex gap-3 items-end">
-            <div className="w-1/3 space-y-1">
+          <div
+            key={field.id || index}
+            className="flex flex-col sm:flex-row gap-3 items-start sm:items-end"
+          >
+            <div className="w-full sm:w-1/3 space-y-1">
               <label className="text-xs font-medium text-muted-foreground">
                 Category
               </label>

@@ -59,11 +59,11 @@ export default function PatientOverview({ id }: { id: string }) {
         form.handleSubmit();
       }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+        <div className="text-xs sm:text-sm text-muted-foreground">
           Update patient demographics and contact details.
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto justify-end">
           {isEditing ? (
             <>
               <Button
@@ -111,7 +111,7 @@ export default function PatientOverview({ id }: { id: string }) {
             Patient Information
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-4 sm:p-6">
           <form.Field name="name">
             {(field) => (
               <div className="space-y-1">

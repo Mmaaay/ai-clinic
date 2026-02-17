@@ -280,21 +280,21 @@ function AddPatientForm() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* HEADER */}
       <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button variant="ghost" size="sm" onClick={() => router.push("/")}>
               ← Back
             </Button>
             <div>
-              <h1 className="text-xl font-bold">Add Patient</h1>
+              <h1 className="text-lg sm:text-xl font-bold">Add Patient</h1>
               <p className="text-xs text-muted-foreground">
                 New Medical Record
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto justify-end">
             <label
-              className={`btn-primary relative cursor-pointer inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent ${isScanning ? "opacity-50" : ""}`}
+              className={`btn-primary relative cursor-pointer inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 sm:px-4 text-xs sm:text-sm font-medium shadow-sm transition-colors hover:bg-accent ${isScanning ? "opacity-50" : ""}`}
             >
               <input
                 type="file"
@@ -334,14 +334,14 @@ function AddPatientForm() {
           </div>
         </div>
         {(serverError || scanError) && (
-          <div className="container mx-auto px-4 pb-2">
+          <div className="container mx-auto px-3 sm:px-4 pb-2">
             <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
               {serverError || scanError}
             </div>
           </div>
         )}
         {isScanning && (
-          <div className="container mx-auto px-4 pb-2">
+          <div className="container mx-auto px-3 sm:px-4 pb-2">
             <div className="flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Extracting structured data...</span>
@@ -351,51 +351,74 @@ function AddPatientForm() {
       </div>
 
       {/* CONTENT */}
-      <div className="flex-1 container mx-auto px-4 py-6 max-w-5xl">
+      <div className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-5xl">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="space-y-6"
+          className="space-y-4 sm:space-y-6"
         >
-          <TabsList className="flex flex-wrap justify-start gap-2 bg-muted p-1 h-auto">
-            <TabsTrigger value="details" className="gap-2 px-4">
-              <UserCircle className="w-4 h-4" /> Demographics
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2 px-4">
-              <FileText className="w-4 h-4" /> History
-            </TabsTrigger>
-            <TabsTrigger value="followup" className="gap-2 px-4">
-              <CalendarClock className="w-4 h-4" /> Follow Up
-            </TabsTrigger>
-            <TabsTrigger value="labs" className="gap-2 px-4">
-              Labs
-            </TabsTrigger>
-            <TabsTrigger value="imaging" className="gap-2 px-4">
-              Imaging
-            </TabsTrigger>
-            <TabsTrigger value="visits" className="gap-2 px-4">
-              Visits
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="gap-2 px-4">
-              Notes
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-1 px-1 scrollbar-hide">
+            <TabsList className="flex flex-nowrap justify-start gap-1 sm:gap-2 bg-muted p-1 h-auto min-w-max">
+              <TabsTrigger
+                value="details"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                <UserCircle className="w-3 h-3 sm:w-4 sm:h-4" /> Demographics
+              </TabsTrigger>
+              <TabsTrigger
+                value="history"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" /> History
+              </TabsTrigger>
+              <TabsTrigger
+                value="followup"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                <CalendarClock className="w-3 h-3 sm:w-4 sm:h-4" /> Follow Up
+              </TabsTrigger>
+              <TabsTrigger
+                value="labs"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                Labs
+              </TabsTrigger>
+              <TabsTrigger
+                value="imaging"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                Imaging
+              </TabsTrigger>
+              <TabsTrigger
+                value="visits"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                Visits
+              </TabsTrigger>
+              <TabsTrigger
+                value="notes"
+                className="gap-1 sm:gap-2 px-2 sm:px-4 text-xs sm:text-sm"
+              >
+                Notes
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* --- TAB 1: DEMOGRAPHICS (Styled Like Your Card) --- */}
           <TabsContent value="details" className="animate-in fade-in-50">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-xl border border-dashed">
-                <User className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold tracking-tight">
+              <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-muted/30 rounded-xl border border-dashed">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h2 className="text-base sm:text-lg font-semibold tracking-tight">
                   Patient Demographics
                 </h2>
               </div>
 
               <Card className="overflow-hidden border-l-4 border-l-blue-500 shadow-sm">
                 {/* Header: Name & Gender */}
-                <CardHeader className="bg-muted/30 px-6 py-4">
-                  <CardTitle className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                    <div className="space-y-2 w-full md:w-1/2">
+                <CardHeader className="bg-muted/30 px-4 sm:px-6 py-3 sm:py-4">
+                  <CardTitle className="flex flex-col gap-3 sm:gap-4">
+                    <div className="space-y-2 w-full">
                       <form.Field name="patient.name">
                         {(field) => (
                           <div>
@@ -411,7 +434,7 @@ function AddPatientForm() {
                             </Label>
                             <Input
                               placeholder="Full Name (English)"
-                              className={`text-lg font-bold h-10 ${
+                              className={`text-base sm:text-lg font-bold h-10 ${
                                 missingFields.includes("Full Name (English)")
                                   ? "border-red-500 ring-1 ring-red-500 focus-visible:ring-red-500"
                                   : ""
@@ -445,11 +468,11 @@ function AddPatientForm() {
                         )}
                       </form.Field>
                     </div>
-                    <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       <form.Field name="patient.gender">
                         {(field) => (
                           <select
-                            className="h-9 rounded-md border bg-background px-3 text-sm"
+                            className="h-9 rounded-md border bg-background px-3 text-sm flex-1 sm:flex-none"
                             value={field.state.value || ""}
                             onChange={(e) => field.handleChange(e.target.value)}
                           >
@@ -485,8 +508,8 @@ function AddPatientForm() {
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {/* 1. Contact Info */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-muted-foreground mb-1">

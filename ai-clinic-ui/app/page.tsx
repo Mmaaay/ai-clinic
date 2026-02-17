@@ -11,8 +11,8 @@ export default async function Home() {
 
   if (patients.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <h1 className="text-lg sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 text-center">
           No patients found. Please add patients to get started.
         </h1>
       </div>
@@ -23,7 +23,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-10 px-6 py-12">
+      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 sm:gap-10 px-3 sm:px-6 py-6 sm:py-12">
         <HydrationBoundary state={dehydrate(queryClient)}>
           <PatientsTable patients={patients} />
         </HydrationBoundary>

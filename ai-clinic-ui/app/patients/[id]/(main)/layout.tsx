@@ -14,13 +14,13 @@ export default async function PatientMainLayout({
   const { id } = await params;
 
   return (
-    <div className="w-full h-full p-6">
+    <div className="w-full h-full px-3 py-4 sm:p-6">
       {/* Navigation is now a separate component */}
       <PatientTabNav patientId={id} />
 
       {/* ScrollArea wraps the dynamic page content */}
-      <ScrollArea className="h-[calc(100vh-220px)]">
-        <div className="min-w-0 pr-4">{children}</div>
+      <ScrollArea className="h-[calc(100vh-200px)] sm:h-[calc(100vh-220px)]">
+        <div className="min-w-0 pr-2 sm:pr-4">{children}</div>
       </ScrollArea>
     </div>
   );

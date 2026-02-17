@@ -127,7 +127,7 @@ function VisitsArray({
                     </Button>
 
                     <div className="space-y-5">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-muted-foreground uppercase">
                             Date
@@ -181,7 +181,7 @@ function VisitsArray({
                             }}
                           </form.Field>
                         </div>
-                        <div className="space-y-1.5 pr-8">
+                        <div className="space-y-1.5 sm:pr-8">
                           <label className="text-xs font-semibold text-muted-foreground uppercase">
                             Urgent Purpose
                           </label>
@@ -212,7 +212,7 @@ function VisitsArray({
                           <Activity className="w-3 h-3" />
                           <span>Vitals & Measurements</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                           <div className="space-y-1">
                             <label className="text-[10px] text-cyan-600 font-bold uppercase flex items-center gap-1">
                               <Scale className="w-3 h-3" /> Weight (kg)
@@ -289,8 +289,8 @@ function VisitsArray({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5 md:col-span-2">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-muted-foreground uppercase">
                             Clinical Findings
                           </label>

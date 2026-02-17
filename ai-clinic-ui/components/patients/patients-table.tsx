@@ -20,6 +20,7 @@ const columns: ColumnDef<Patients>[] = [
     accessorKey: "nationalId",
     header: "National ID",
     cell: ({ row }) => row.original.nationalId ?? "—",
+    meta: { className: "hidden sm:table-cell" },
   },
   {
     accessorKey: "age",
@@ -28,12 +29,13 @@ const columns: ColumnDef<Patients>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: "Added Date",
+    header: "Added",
     cell: ({ row }) =>
       new Intl.DateTimeFormat("en-US", {
         dateStyle: "medium",
         timeZone: "UTC",
       }).format(new Date(row.original.createdAt)),
+    meta: { className: "hidden md:table-cell" },
   },
 ];
 

@@ -141,10 +141,10 @@ const LabsForm = withForm({
                                 <Trash2 className="w-4 h-4" />
                               </Button>
 
-                              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                <div className="md:col-span-5 space-y-3">
-                                  <div className="flex gap-2">
-                                    <div className="w-2/3 space-y-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                                <div className="sm:col-span-5 space-y-3">
+                                  <div className="flex flex-col sm:flex-row gap-2">
+                                    <div className="w-full sm:w-2/3 space-y-1">
                                       <label className="text-[10px] uppercase font-bold text-muted-foreground">
                                         Test Name
                                       </label>
@@ -170,7 +170,7 @@ const LabsForm = withForm({
                                         }}
                                       </form.Field>
                                     </div>
-                                    <div className="w-1/3 space-y-1">
+                                    <div className="w-full sm:w-1/3 space-y-1">
                                       <label className="text-[10px] uppercase font-bold text-muted-foreground">
                                         Type
                                       </label>
@@ -248,7 +248,7 @@ const LabsForm = withForm({
                                   </div>
                                 </div>
 
-                                <div className="md:col-span-7 grid grid-cols-2 gap-3">
+                                <div className="sm:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div className="col-span-2 grid grid-cols-3 gap-2">
                                     <div className="col-span-2 space-y-1">
                                       <label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">

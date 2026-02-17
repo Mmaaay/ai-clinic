@@ -114,7 +114,7 @@ function ImagingArray({
                 (_: PatientImagingForm, index: number) => (
                   <div
                     key={index}
-                    className="relative p-4 border rounded-xl bg-card shadow-sm group"
+                    className="relative p-3 sm:p-4 border rounded-xl bg-card shadow-sm group"
                   >
                     <Button
                       type="button"
@@ -126,7 +126,7 @@ function ImagingArray({
                       <Trash2 className="w-4 h-4" />
                     </Button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4">
                       <div className="md:col-span-3 space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Modality
@@ -163,7 +163,7 @@ function ImagingArray({
                         </div>
                       </div>
 
-                      <div className="md:col-span-3 space-y-1.5">
+                      <div className="sm:col-span-1 md:col-span-3 space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Category
                         </label>
@@ -192,7 +192,7 @@ function ImagingArray({
                         </form.Field>
                       </div>
 
-                      <div className="md:col-span-3 space-y-1.5">
+                      <div className="sm:col-span-1 md:col-span-3 space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Study Date
                         </label>
@@ -220,7 +220,7 @@ function ImagingArray({
                         </form.Field>
                       </div>
 
-                      <div className="md:col-span-3 space-y-1.5 pr-8">
+                      <div className="sm:col-span-1 md:col-span-3 space-y-1.5 sm:pr-8">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Study Name
                         </label>
@@ -242,7 +242,7 @@ function ImagingArray({
                         </form.Field>
                       </div>
 
-                      <div className="md:col-span-8 space-y-1.5">
+                      <div className="sm:col-span-2 md:col-span-8 space-y-1.5">
                         <label className="text-xs font-semibold uppercase flex items-center gap-2 text-muted-foreground">
                           <FileText className="w-3 h-3" /> Full Report
                         </label>
@@ -276,7 +276,7 @@ function ImagingArray({
                         </form.Field>
                       </div>
 
-                      <div className="md:col-span-4 space-y-1.5">
+                      <div className="sm:col-span-2 md:col-span-4 space-y-1.5">
                         <label className="text-xs font-semibold uppercase text-violet-600">
                           Impression
                         </label>
@@ -301,7 +301,7 @@ function ImagingArray({
                         </form.Field>
                       </div>
 
-                      <div className="md:col-span-8 space-y-1.5">
+                      <div className="sm:col-span-2 md:col-span-8 space-y-1.5">
                         <label className="text-xs font-semibold uppercase text-muted-foreground">
                           Image URL
                         </label>

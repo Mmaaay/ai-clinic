@@ -190,7 +190,7 @@ export default function MedicationsSection({
           }}
         </form.Field>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* View Mode: Cards with Date */}
           {filteredMedications.length > 0 ? (
             filteredMedications?.map((m, i) => (

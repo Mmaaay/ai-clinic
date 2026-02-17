@@ -8,7 +8,7 @@ import { GoogleGenAI } from "@google/genai";
 import z from "zod";
 
 // const DEFAULT_MODEL = "gemini-2.5-flash-lite";
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash-lite";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 

@@ -543,6 +543,15 @@ function AddPatientForm() {
                           National ID
                         </span>
                       </div>
+                      <form.Field name="patient.nationalId">
+                        {(field) => (
+                          <Input
+                            placeholder="National ID"
+                            value={field.state.value || ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                          />
+                        )}
+                      </form.Field>
                     </div>
 
                     {/* 2. Address */}

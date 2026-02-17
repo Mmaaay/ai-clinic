@@ -72,7 +72,6 @@ export const insertPatientsSchema = createInsertSchema(patients, {
 }).omit({
   createdAt: true,
   updatedAt: true,
-  nationalId: true,
 });
 export const emptyPatientInsert = insertPatientsSchema.parse({
   name: "",
@@ -99,7 +98,6 @@ export const aiPatientsSchema = createInsertSchema(patients)
     id: true,
     createdAt: true,
     updatedAt: true,
-    nationalId: true,
   })
   .extend({
     dob: z.string().nullable().optional(),
